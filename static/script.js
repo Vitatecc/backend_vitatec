@@ -37,11 +37,11 @@ function getApiKey() {
 function cargarSolicitudes() {
     fetch('https://formulario-vitatec.onrender.com/api/ver-solicitudes')
         .then(res => res.json())
-        .then(data => {
+        .then(async data => {
             const cuerpo = document.getElementById("solicitudesBody");
             cuerpo.innerHTML = "";
 
-            if (!data.length) {
+            if (!data.archivos || !data.archivos.length) {
                 const fila = document.createElement("tr");
                 const celda = document.createElement("td");
                 celda.colSpan = 4;
@@ -51,29 +51,38 @@ function cargarSolicitudes() {
                 return;
             }
 
-            data.forEach(p => {
-                const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
-                const fila = document.createElement("tr");
+            // Cargar y mostrar cada solicitud individual
+            for (const archivo of data.archivos) {
+                try {
+                    const response = await fetch(`https://formulario-vitatec.onrender.com/data/solicitudes/${archivo}`);
+                    const p = await response.json();
 
-                if (dniDuplicado) {
-                    fila.classList.add("fila-duplicada");
-                    fila.title = "⚠️ El DNI ya está registrado en pacientes.";
+                    const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
+                    const fila = document.createElement("tr");
+
+                    if (dniDuplicado) {
+                        fila.classList.add("fila-duplicada");
+                        fila.title = "⚠️ El DNI ya está registrado en pacientes.";
+                    }
+
+                    fila.innerHTML = `
+                        <td>${dniDuplicado ? "⚠️ " : ""}${p.nombre} ${p.apellidos}</td>
+                        <td>${p.movil}</td>
+                        <td>${p.email}</td>
+                        <td>
+                            <button onclick='verDetalles(${JSON.stringify(p).replace(/"/g, "&quot;")})'>Ver</button>
+                            <button onclick="aprobarPaciente('${p.dni}')">Aprobar</button>
+                            <button onclick="rechazarPaciente('${p.dni}')">Rechazar</button>
+                        </td>
+                    `;
+                    cuerpo.appendChild(fila);
+                } catch (err) {
+                    console.error("Error leyendo solicitud:", archivo, err);
                 }
-
-                fila.innerHTML = `
-                    <td>${dniDuplicado ? "⚠️ " : ""}${p.nombre} ${p.apellidos}</td>
-                    <td>${p.movil}</td>
-                    <td>${p.email}</td>
-                    <td>
-                        <button onclick='verDetalles(${JSON.stringify(p).replace(/"/g, "&quot;")})'>Ver</button>
-                        <button onclick="aprobarPaciente('${p.dni}')">Aprobar</button>
-                        <button onclick="rechazarPaciente('${p.dni}')">Rechazar</button>
-                    </td>
-                `;
-                cuerpo.appendChild(fila);
-            });
+            }
         });
 }
+
 
 function aprobarPaciente(dni) {
   if (dnisRegistrados.includes(dni.toLowerCase())) {

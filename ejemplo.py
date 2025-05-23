@@ -2197,7 +2197,13 @@ def solicitud_alta():
 
     # Leer los DNI ya existentes desde archivos individuales
     solicitudes_dir = os.path.join("data", "solicitudes")
-    os.makedirs(solicitudes_dir, exist_ok=True)
+    if os.path.exists(solicitudes_dir):
+        if not os.path.isdir(solicitudes_dir):
+            os.remove(solicitudes_dir)  # elimina el archivo para poder crear la carpeta
+            os.makedirs(solicitudes_dir)
+    else:
+        os.makedirs(solicitudes_dir)
+
     dnis_existentes = [
         os.path.splitext(f)[0].lower()
         for f in os.listdir(solicitudes_dir) if f.endswith(".json")

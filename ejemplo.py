@@ -80,7 +80,9 @@ from selenium.common.exceptions import StaleElementReferenceException, NoSuchEle
 import locale
 from dateutil.parser import parse  # al inicio del script
 
-locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")  # En Linux
+locale.setlocale(locale.LC_TIME, "C.UTF-8")
+
+#locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")  # En Linux
 #locale.setlocale(locale.LC_TIME, "Spanish_Spain")  # En Windows
 
 def imprimir_banner():

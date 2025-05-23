@@ -1138,22 +1138,27 @@ class LogManager:
     def agregar_evento_auditoria(evento, usuario=None):
         entrada = {
             "timestamp": datetime.now().isoformat(),
-            "message": f"{evento}",
-            "usuario": usuario or "Sistema"
         }
-
+    
+        if isinstance(evento, dict):
+            entrada.update(evento)
+        else:
+            # Caso antiguo, lo mantienes si quieres logs de texto genéricos
+            entrada["message"] = f"{evento}"
+            entrada["usuario"] = usuario or "Sistema"
+    
         try:
             if RUTA_AUDIT.exists():
                 with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
                     auditoria = json.load(f)
             else:
                 auditoria = []
-
+    
             auditoria.append(entrada)
-
+    
             with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
                 json.dump(auditoria, f, indent=4, ensure_ascii=False)
-
+    
         except Exception as e:
             print(f"❌ Error al guardar auditoría: {e}")
 

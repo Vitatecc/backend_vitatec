@@ -1590,6 +1590,21 @@ class CitaManager:
 # ==============================================
 # WEBHOOKS MEJORADOS
 # ==============================================
+@app.route('/webhook/solicitud/<nombre_archivo>', methods=['GET'])
+@login_required
+def obtener_solicitud_individual(nombre_archivo):
+    try:
+        ruta = RUTA_SOLICITUDES / nombre_archivo
+        if not ruta.exists():
+            return jsonify({"status": "error", "message": "Archivo no encontrado"}), 404
+
+        with open(ruta, "r", encoding="utf-8") as f:
+            datos = json.load(f)
+
+        return jsonify(datos)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None

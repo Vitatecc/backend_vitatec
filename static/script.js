@@ -184,13 +184,16 @@ function cargarAuditoria() {
             contenedor.innerHTML = "";
 
             data.forEach(item => {
+                // Ignorar entradas mal formateadas
+                if (!item.accion || !item.usuario || !item.dni) return;
+            
                 const fecha = new Date(item.timestamp).toLocaleString("es-ES");
                 const clase = item.accion === "Rechazada" ? "registro-rechazado" : "registro-aprobado";
-
+            
                 const div = document.createElement("div");
                 div.className = `registro ${clase}`;
                 div.innerHTML = `
-                    <strong>${item.usuario || "Sistema"}</strong> – 
+                    <strong>${item.usuario}</strong> – 
                     <span>${item.accion}</span> (${item.dni})<br>
                     <small>${fecha}</small>
                 `;

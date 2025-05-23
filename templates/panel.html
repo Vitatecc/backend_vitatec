@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Vitatec</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<style>
+.registro-aprobado { background: lightgreen !important; }
+.registro-rechazado { background: lightcoral !important; }
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+}
+.modal-contenido {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+}
+.cerrar {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+}
+#mas {
+  margin-top: 10px;
+  padding: 5px 15px;
+  background: #008CBA;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#mas:hover {
+  background: #005f6a;
+}
+.registro {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.registro-aprobado {
+  border-left: 5px solid #198754;         /* verde Bootstrap fuerte */
+  background-color: #cce5cc;              /* verde más visible */
+  color: #0b2e13;                         /* texto oscuro */
+}
+
+.registro-rechazado {
+  border-left: 5px solid #dc3545;         /* rojo Bootstrap fuerte */
+  background-color: #f1b0b7;              /* rojo pastel intenso */
+  color: #58151c;                         /* texto rojo oscuro */
+}
+
+.registro:hover {
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+#modalAuditoria .modal-contenido {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+}
+.fila-duplicada {
+  background-color: #f8d7da;  /* rojo suave */
+  color: #721c24;
+}
+</style>
+
+<body>
+  <header>
+    <h1>Dashboard de Administración</h1>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#solicitudes">Solicitudes</a></li>
+      <li><a href="#resumen">Resumen</a></li>
+      <li><a href="#logs">Logs</a></li>
+      <li><a href="#messages">Mensajes Enviados</a></li>
+      <li><a href="#audit">Auditoría</a></li>
+      <li><a href="#stats">Estadísticas</a></li>
+      <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+<div id="modalDetalles" class="modal" style="display:none;">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarModal()">&times;</span>
+    <h2>Detalles de la Solicitud</h2>
+    <div id="contenidoDetalles"></div>
+  </div>
+</div>
+<div id="modalAuditoria" class="modal" style="display:none;">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarAuditoriaModal()">&times;</span>
+    <h2>Detalle de auditoría</h2>
+    <div id="contenidoAuditoria"></div>
+  </div>
+</div>
+  <main>
+  
+    <!-- Sección de Solicitudes Pendientes -->
+    <section id="solicitudes" class="card">
+      <div class="card-header">📥 Solicitudes Pendientes de Alta</div>
+      <div class="card-body">
+        <table class="tabla" id="tablaSolicitudes">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="solicitudesBody">
+            <!-- Se rellena por JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Resumen -->
+    <section id="resumen" class="card">
+      <div class="card-header">Resumen de Actividad</div>
+      <div class="card-body">
+        <p><strong>📅 Total citas hoy:</strong> <span id="citasHoy">-</span></p>
+        <p><strong>✅ Confirmadas:</strong> <span id="citasConfirmadas">-</span></p>
+        <p><strong>❌ Canceladas:</strong> <span id="citasCanceladas">-</span></p>
+        <p><strong>📨 Mensajes enviados:</strong> <span id="mensajesTotales">-</span></p>
+      </div>
+    </section>
+
+    <!-- Sección Logs -->
+    <section id="logs">
+      <h2>Logs de Actividad</h2>
+      <div id="logList">
+        <div id="logsContainer"></div>
+        <button id="mas" onclick="cargarLogs(true)">Mostrar más</button>
+      </div>
+    </section>
+
+    <!-- Sección Mensajes Enviados -->
+    <section id="messages">
+      <h2>Mensajes Enviados</h2>
+      <div id="messagesList">
+        <div id="messagesContainer"></div>
+        <button id="masMensajes" onclick="cargarMensajes(true)">Mostrar más</button>
+      </div>
+    </section>
+
+    <!-- Sección Auditoría -->
+    <section id="audit">
+      <h2>Auditoría</h2>
+      <div id="auditList"></div>
+    </section>
+
+    <!-- Sección Estadísticas -->
+    <section id="stats">
+      <h2>Estadísticas de Citas</h2>
+
+      <!-- Selector Día/Mes -->
+      <div style="margin-bottom: 20px;">
+        <label>
+          <input type="radio" name="tipoEstadistica" value="dia" checked>
+          Ver por día
+        </label>
+        <label style="margin-left: 20px;">
+          <input type="radio" name="tipoEstadistica" value="mes">
+          Ver por mes
+        </label>
+      </div>
+
+      <!-- Gráfico -->
+      <canvas id="myChart" width="400" height="200"></canvas>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Vitatec. Todos los derechos reservados.</p>
+  </footer>
+
+  <script src="/static/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+</body>
+</html>

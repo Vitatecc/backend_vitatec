@@ -54,7 +54,7 @@ function cargarSolicitudes() {
             // Cargar y mostrar cada solicitud individual
             for (const archivo of data.archivos) {
                 try {
-                    const response = await fetch(`https://formulario-vitatec.onrender.com/data/solicitudes/${archivo}`);
+                    const response = await fetch(`/webhook/solicitud/${archivo}`);
                     const p = await response.json();
 
                     const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());

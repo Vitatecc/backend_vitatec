@@ -1,0 +1,257 @@
+/* Diseño general */
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f1f1f1;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+header {
+    background-color: #222;
+    color: white;
+    padding: 30px;
+    text-align: center;
+    font-size: 1.8em;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+nav {
+    background-color: #333;
+    color: white;
+    padding: 15px 0;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+nav ul li {
+    display: inline-block;
+    margin: 0 20px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.1em;
+    font-weight: 500;
+    padding: 10px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+nav ul li a:hover {
+    background-color: #5cb85c;
+    color: white;
+}
+
+main {
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Sección del contenido */
+section {
+    margin-bottom: 40px;
+}
+
+h2 {
+    font-size: 2.5em;
+    color: #444;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+footer {
+    text-align: center;
+    padding: 25px;
+    background-color: #333;
+    color: white;
+    font-size: 1.1em;
+    margin-top: 40px;
+}
+
+/* Estilos para los logs y mensajes */
+#logList, #messagesList, #auditList {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#logList div, #messagesList div, #auditList div {
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #f9f9f9;
+    border-left: 5px solid #007bff;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+}
+
+#logList div:hover, #messagesList div:hover, #auditList div:hover {
+    background-color: #f1f1f1;
+}
+
+/* Estilo para el canvas de estadísticas */
+canvas {
+    width: 100%;
+    height: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    margin-top: 30px;
+}
+
+/* Estilos de tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+table th, table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border-top: 1px solid #ddd;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Estilos de botones */
+button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1em;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+/* Estilos de formularios */
+input[type="text"], input[type="date"], select {
+    width: 100%;
+    padding: 15px;
+    font-size: 1em;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus, input[type="date"]:focus, select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Estilos de mensaje de error */
+.error-message {
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: 10px;
+}
+
+/* Estilo para contenedores */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card {
+    background-color: #fff;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.card-body {
+    font-size: 1.2em;
+    color: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header {
+        font-size: 1.5em;
+    }
+
+    nav ul li {
+        display: block;
+        margin: 5px 0;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+}
+/* Auditoría - colores por tipo */
+.registro-aprobado {
+    background-color: #e6ffed;  /* Verde claro */
+    border-left: 4px solid #28a745; /* Verde oscuro */
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.registro-rechazado {
+    background-color: #ffe6e6;  /* Rojo claro */
+    border-left: 4px solid #dc3545; /* Rojo oscuro */
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.registro:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.log-info { border-left: 5px solid #007bff; }
+.log-warning { border-left: 5px solid #ffc107; }
+.log-error { border-left: 5px solid #dc3545; }
+
+.message-enviado { border-left: 5px solid #28a745; }
+.message-fallido { border-left: 5px solid #dc3545; }
+.message-pendiente { border-left: 5px solid #ffc107; }
+

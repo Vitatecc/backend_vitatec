@@ -35,7 +35,7 @@ function getApiKey() {
 }
 
 function cargarSolicitudes() {
-    fetch('/webhook/solicitudes')
+    fetch('https://formulario-vitatec.onrender.com/api/ver-solicitudes')
         .then(res => res.json())
         .then(data => {
             const cuerpo = document.getElementById("solicitudesBody");

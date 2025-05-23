@@ -2178,7 +2178,7 @@ def panel():
 
 @app.route('/formulario')
 def formulario_alta():
-    return render_template('formulario.html', datos={}, errores={}, mensaje="Solicitud recibida correctamente")
+    return render_template('formulario.html', datos={}, errores={})
 
 @app.route('/api/solicitud-alta', methods=['POST'])
 def solicitud_alta():

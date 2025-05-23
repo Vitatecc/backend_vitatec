@@ -49,6 +49,7 @@ from functools import wraps                # API KEY
 from flask_cors import cross_origin
 from flask import session, redirect, url_for
 from werkzeug.security import check_password_hash
+from flask import send_from_directory
 
 
 ### SELENIUM (AUTOMATIZACIoN) ###
@@ -296,7 +297,14 @@ class ESIClinicAutomator:
 # ==============================================
 # CLASE PARA MANEJO DE ESICLINIC
 # ==============================================
+@app.route('/api/ver-solicitudes', methods=['GET'])
+def ver_solicitudes():
+    solicitudes_dir = os.path.join(BASE_DIR, 'data', 'solicitudes')
+    if not os.path.exists(solicitudes_dir):
+        return jsonify({"status": "error", "message": "No existe la carpeta 'solicitudes'"}), 404
 
+    archivos = [f for f in os.listdir(solicitudes_dir) if f.endswith(".json")]
+    return jsonify({"status": "ok", "archivos": archivos})
 class EsiclinicManager:
     def __init__(self, headless=False):
         self.driver = None

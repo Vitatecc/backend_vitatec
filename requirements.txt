@@ -5,3 +5,4 @@ python-dotenv
 openpyxl
 gunicorn
 flask-cors
+webdriver-manager

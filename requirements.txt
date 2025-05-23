@@ -3,3 +3,4 @@ pandas
 selenium
 python-dotenv
 openpyxl
+gunicorn

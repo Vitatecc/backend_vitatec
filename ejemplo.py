@@ -2236,7 +2236,23 @@ def solicitud_alta():
         json.dump(datos, f, indent=2, ensure_ascii=False)
 
     # Registro en auditoría
-    LogManager.agregar_evento_auditoria(f"Solicitud de alta recibida: {dni}", usuario=dni)
+    evento = {
+        "dni": dni,
+        "accion": "Solicitud recibida",
+        "usuario": dni,
+        "timestamp": datetime.now().isoformat()
+    }
+    try:
+        with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
+            auditoria = json.load(f)
+    except:
+        auditoria = []
+    
+    auditoria.append(evento)
+    
+    with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
+        json.dump(auditoria, f, indent=2, ensure_ascii=False)
+
 
     return render_template('formulario.html', datos={}, errores={}, mensaje="Solicitud recibida. Nos pondremos en contacto contigo.")
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])

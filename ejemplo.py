@@ -48,7 +48,7 @@ from flask_cors import CORS                # Importar CORS
 from functools import wraps                # API KEY
 from flask_cors import cross_origin
 from flask import session, redirect, url_for
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
 from flask import send_from_directory
 
 

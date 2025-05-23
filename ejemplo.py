@@ -2398,9 +2398,5 @@ if __name__ == '__main__':
     (BASE_DIR / "errors").mkdir(exist_ok=True)
     
     # Iniciar servidor Flask
-    app.run(
-        host='0.0.0.0',
-        port=8080,
-        debug=True,
-        threaded=True
-    )
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

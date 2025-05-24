@@ -286,7 +286,7 @@ def panel():
 def formulario_alta():
     mensaje = request.args.get("mensaje")
     mostrar_mensaje = mensaje == "ok"
-    return render_template('formulario.html', datos={}, errores={}, mensaje=True), 200
+    return render_template('formulario.html', datos={}, errores={}, mensaje=mostrar_mensaje), 200
 
 @app.route('/api/solicitud-alta', methods=['POST'])
 def solicitud_alta():

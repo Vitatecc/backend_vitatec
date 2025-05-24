@@ -11,7 +11,7 @@
       <p>Gracias por tu solicitud. Te contactaremos pronto.</p>
     </div>
   {% else %}
-    <form method="POST" action="/api/solicitud-alta">
+    <form method="POST" action="{{ url_for('solicitud_alta') }}">
 
       <!-- Nombre -->
       <label class="block mb-1 text-sm font-medium">Nombre</label>

@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    cargarSolicitudes();
     cargarLogs();
     cargarMensajes();
     cargarAuditoria();
@@ -9,12 +8,23 @@ document.addEventListener("DOMContentLoaded", function () {
         radio.addEventListener('change', cargarEstadisticas);
     });
 
-    // Refresco automático
-    setInterval(() => {
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const dia = ahora.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+
+    const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+
+    if (!dentroHorario) {
+        document.getElementById("avisoHorario").style.display = "block";
+        // No activamos intervalo aquí
+    } else {
         cargarSolicitudes();
-    }, 10000);
+        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+    }
 });
 
+let intervaloSolicitudes = null;
+let mostrarFueraHorario = false;
 let dnisRegistrados = [];
 
 fetch("/api/pacientes/dnis")
@@ -50,7 +60,7 @@ function cargarSolicitudes() {
                 cuerpo.appendChild(fila);
                 return;
             }
-            
+
             let algunaVisible = false;
 
             for (const archivo of data.archivos) {
@@ -58,11 +68,21 @@ function cargarSolicitudes() {
                     const response = await fetch(`/webhook/solicitud/${archivo}`);
                     const p = await response.json();
 
-                    if (!p.visible_en_panel) continue;
-                    algunaVisible = true;
+                    const fila = document.createElement("tr");
+
+                    // Marcar si se debe mostrar en horario laboral
+                    fila.setAttribute("data-visible", p.visible_en_panel ? "true" : "false");
+
+                    // Si está fuera de horario y no se ha activado "ver también fuera de horario", ocultar
+                    if (!p.visible_en_panel && !mostrarFueraHorario) {
+                        fila.style.display = "none";
+                    }
+
+                    if (p.visible_en_panel) {
+                        algunaVisible = true;
+                    }
 
                     const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
-                    const fila = document.createElement("tr");
 
                     if (dniDuplicado) {
                         fila.classList.add("fila-duplicada");
@@ -85,13 +105,12 @@ function cargarSolicitudes() {
                 }
             }
 
-            if (!algunaVisible) {
-                const fila = document.createElement("tr");
-                const celda = document.createElement("td");
-                celda.colSpan = 4;
-                celda.innerHTML = `<span style="color: #dc3545;">⚠️ Actualmente estamos fuera del horario laboral. Las solicitudes se crean automáticamente y no aparecerán aquí.</span>`;
-                fila.appendChild(celda);
-                cuerpo.appendChild(fila);
+            // Mostrar aviso solo si no hay solicitudes visibles
+            const aviso = document.getElementById("avisoHorario");
+            if (!algunaVisible && aviso) {
+                aviso.style.display = "block";
+            } else if (aviso) {
+                aviso.style.display = "none";
             }
         });
 }
@@ -256,6 +275,28 @@ function cargarEstadisticas() {
             const totalHoy = tipo === "dia" ? (data[hoy] || 0) : 0;
             document.getElementById("citasHoy").textContent = totalHoy;
         });
+}
+function toggleFueraDeHorario() {
+    mostrarFueraHorario = !mostrarFueraHorario;
+
+    const filas = document.querySelectorAll("#solicitudesBody tr");
+    filas.forEach(fila => {
+        const visible = fila.getAttribute("data-visible") === "true";
+        if (!visible) {
+            fila.style.display = mostrarFueraHorario ? "table-row" : "none";
+        }
+    });
+
+    const boton = document.querySelector("#avisoHorario button");
+    boton.textContent = mostrarFueraHorario ? "Ocultar fuera de horario" : "Ver también fuera de horario";
+
+    if (mostrarFueraHorario && !intervaloSolicitudes) {
+        cargarSolicitudes();
+        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+    } else if (!mostrarFueraHorario && intervaloSolicitudes) {
+        clearInterval(intervaloSolicitudes);
+        intervaloSolicitudes = null;
+    }
 }
 
 function verDetalles(p) {

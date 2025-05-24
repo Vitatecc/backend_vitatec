@@ -126,11 +126,13 @@ def dentro_horario_laboral():
     ahora = datetime.now()
     dia_semana = ahora.weekday()  # 0=lunes, 6=domingo
     hora_actual = ahora.time()
-    
-    # Horario laboral: L-V 10-14 y 16-20
-    return (0 <= dia_semana <= 4 and 
-           ((time(10, 0) <= hora_actual <= time(14, 0)) or 
-           (time(16, 0) <= hora_actual <= time(20, 0)))
+
+    return (
+        0 <= dia_semana <= 4 and (
+            dtime(10, 0) <= hora_actual <= dtime(14, 0) or
+            dtime(16, 0) <= hora_actual <= dtime(20, 0)
+        )
+    )
 
 @app.route('/api/ver-solicitudes', methods=['GET'])
 @login_required

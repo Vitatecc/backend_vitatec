@@ -23,7 +23,8 @@ import sys          # SISTEMA
 import json         # JSON
 import time         # TIEMPO
 from collections import defaultdict
-
+import gspread
+from google.oauth2.service_account import Credentials
  
 ### IMPORTS DE LIBRERIAS ###
  
@@ -1618,6 +1619,49 @@ def login():
         else:
             error = "Credenciales incorrectas"
     return render_template("login.html", error=error)
+def obtener_estadisticas_google_sheets(modo="mes"):
+    try:
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+        creds = Credentials.from_service_account_file("automatizacionvitatec-456311-81a21cdf147d.json", scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        spreadsheet = client.open("pacientes.xlsx")  # Asegúrate de que el nombre coincida
+        sheet = spreadsheet.sheet1  # O usa .worksheet("Nombre") si no es la primera hoja
+
+        datos = sheet.get_all_records()
+        fechas = []
+
+        for fila in datos:
+            fecha_str = fila.get("Fecha de alta") or fila.get("Fecha")
+            if fecha_str:
+                try:
+                    fecha = pd.to_datetime(fecha_str, errors='coerce')
+                    if pd.notna(fecha):
+                        fechas.append(fecha)
+                except:
+                    continue
+
+        df = pd.DataFrame({"Fecha": fechas})
+        if df.empty:
+            return {"labels": [], "values": []}
+
+        if modo == "mes":
+            conteo = df.groupby(df['Fecha'].dt.strftime('%B')).size()
+        else:
+            conteo = df.groupby(df['Fecha'].dt.strftime('%Y-%m-%d')).size()
+
+        return {
+            "labels": conteo.index.tolist(),
+            "values": conteo.values.tolist()
+        }
+    except Exception as e:
+        return {"error": str(e)}
+@app.route('/webhook/stats-google')
+@login_required
+def stats_google():
+    modo = request.args.get("modo", "mes")
+    resultado = obtener_estadisticas_google_sheets(modo)
+    return jsonify(resultado)
 
 @app.route("/logout")
 def logout():

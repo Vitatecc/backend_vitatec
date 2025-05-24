@@ -1632,8 +1632,8 @@ def obtener_estadisticas_google_sheets(modo="mes"):
         creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
 
         client = gspread.authorize(creds)
-        spreadsheet = client.open("pacientes.xlsx")  # Asegúrate de que el nombre coincida
-        sheet = spreadsheet.sheet1  # O usa .worksheet("Nombre") si no es la primera hoja
+        spreadsheet = client.open("pacientes.xlsx")
+        sheet = spreadsheet.sheet1
 
         datos = sheet.get_all_records()
         fechas = []
@@ -1651,28 +1651,32 @@ def obtener_estadisticas_google_sheets(modo="mes"):
         df = pd.DataFrame({"Fecha": fechas})
         if df.empty:
             return {"labels": [], "values": []}
+
         ahora = datetime.now()
-        anio_actual = ahora.year
-        mes_actual = ahora.month
 
         if modo == "mes":
-            # Filtra solo fechas del año actual
-            df = df[df['Fecha'].dt.year == anio_actual]
-            conteo = df.groupby(df['Fecha'].dt.strftime('%B')).size()
+            df = df[df['Fecha'].dt.year == ahora.year]
+            df['MesOrden'] = df['Fecha'].dt.month
+            conteo = df.groupby(['MesOrden', df['Fecha'].dt.strftime('%B')]).size()
+            conteo = conteo.sort_index()
+            labels = [nombre for (_, nombre) in conteo.index]
+            values = conteo.values.tolist()
         else:
-            # Filtra solo fechas del mes y año actual
-            df = df[
-                (df['Fecha'].dt.year == anio_actual) &
-                (df['Fecha'].dt.month == mes_actual)
-            ]
-            conteo = df.groupby(df['Fecha'].dt.strftime('%Y-%m-%d')).size()
+            df = df[(df['Fecha'].dt.year == ahora.year) & (df['Fecha'].dt.month == ahora.month)]
+            df['FechaStr'] = df['Fecha'].dt.strftime('%Y-%m-%d')
+            conteo = df.groupby('FechaStr').size()
+            conteo = conteo.sort_index()
+            labels = conteo.index.tolist()
+            values = conteo.values.tolist()
 
         return {
-            "labels": conteo.index.tolist(),
-            "values": conteo.values.tolist()
+            "labels": labels,
+            "values": values
         }
+
     except Exception as e:
         return {"error": str(e)}
+        
 @app.route('/webhook/stats-google')
 @login_required
 def stats_google():

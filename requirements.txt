@@ -6,3 +6,7 @@ openpyxl
 gunicorn
 flask-cors
 webdriver-manager
+gspread
+google-auth
+google-auth-oauthlib
+oauth2client

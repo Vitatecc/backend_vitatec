@@ -57,74 +57,55 @@ function mostrarAvisos(algunaVisible) {
 }
 
 function cargarSolicitudes() {
-    fetch('https://formulario-vitatec.onrender.com/api/ver-solicitudes')
+    fetch('/api/ver-solicitudes')
         .then(res => res.json())
         .then(async data => {
             const cuerpo = document.getElementById("solicitudesBody");
             cuerpo.innerHTML = "";
 
-            let algunaVisible = false;
-
-            if (!data.archivos || !data.archivos.length) {
-                const fila = document.createElement("tr");
-                const celda = document.createElement("td");
-                celda.colSpan = 4;
-                celda.textContent = "No hay solicitudes pendientes.";
-                fila.appendChild(celda);
-                cuerpo.appendChild(fila);
-                mostrarAvisos(false);
+            if (!data.archivos || data.archivos.length === 0) {
+                cuerpo.innerHTML = `<tr><td colspan="4">No hay solicitudes pendientes.</td></tr>`;
                 return;
             }
+
+            // Obtener DNIs registrados primero
+            const dnisRegistrados = await fetch('/api/pacientes/dnis')
+                .then(res => res.json())
+                .then(data => data.map(d => d.toLowerCase()));
 
             for (const archivo of data.archivos) {
                 try {
                     const response = await fetch(`/webhook/solicitud/${archivo}`);
-                    const p = await response.json();
-
-                    // 🔍 Log de depuración
-                    console.log("Solicitud cargada:", archivo, p);
+                    const solicitud = await response.json();
 
                     const fila = document.createElement("tr");
-                    const visible = Boolean(p.visible_en_panel);
-                    fila.setAttribute("data-visible", visible ? "true" : "false");
-
-                    const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
-
-                    if (dniDuplicado) {
-                        fila.classList.add("fila-duplicada");
-                        fila.title = "⚠️ El DNI ya está registrado en pacientes.";
-                    }
-
-                    fila.innerHTML = `
-                        <td>${dniDuplicado ? "⚠️ " : ""}${p.nombre} ${p.apellidos}</td>
-                        <td>${p.movil}</td>
-                        <td>${p.email}</td>
-                        <td>
-                            <button onclick='verDetalles(${JSON.stringify(p).replace(/"/g, "&quot;")})'>Ver</button>
-                            <button onclick="aprobarPaciente('${p.dni}')">Aprobar</button>
-                            <button onclick="rechazarPaciente('${p.dni}')">Rechazar</button>
-                        </td>
-                    `;
-
-                    // 💡 Control de visibilidad real
-                    if (visible || mostrarFueraHorario) {
-                        fila.style.display = "table-row";
-                        cuerpo.appendChild(fila);
-                    } else {
-                        fila.style.display = "none";
+                    const visible = solicitud.visible_en_panel || false;
+                    
+                    // Mostrar según configuración
+                    if (mostrarFueraHorario || visible) {
+                        const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
+                        
+                        fila.innerHTML = `
+                            <td>${dniDuplicado ? "⚠️ " : ""}${solicitud.nombre} ${solicitud.apellidos}</td>
+                            <td>${solicitud.movil}</td>
+                            <td>${solicitud.email}</td>
+                            <td>
+                                <button onclick='verDetalles(${JSON.stringify(solicitud)})'>Ver</button>
+                                <button onclick="aprobarPaciente('${solicitud.dni}')">Aprobar</button>
+                                <button onclick="rechazarPaciente('${solicitud.dni}')">Rechazar</button>
+                            </td>
+                        `;
+                        
+                        if (dniDuplicado) {
+                            fila.classList.add("fila-duplicada");
+                        }
+                        
                         cuerpo.appendChild(fila);
                     }
-
-                    if (visible) {
-                        algunaVisible = true;
-                    }
-
                 } catch (err) {
-                    console.error("Error leyendo solicitud:", archivo, err);
+                    console.error("Error procesando solicitud:", err);
                 }
             }
-
-            mostrarAvisos(algunaVisible);
         });
 }
 
@@ -292,8 +273,10 @@ function cargarEstadisticas() {
 
 function toggleFueraDeHorario() {
     mostrarFueraHorario = !mostrarFueraHorario;
-    console.log("🔁 Estado de mostrarFueraHorario:", mostrarFueraHorario);
-
+    
+    // Actualizar el localStorage para persistencia
+    localStorage.setItem('mostrarFueraHorario', mostrarFueraHorario);
+    
     const boton = document.querySelector("#avisoHorario button");
     const avisoHorario = document.getElementById("avisoHorario");
     const avisoManual = document.getElementById("avisoManual");
@@ -301,26 +284,28 @@ function toggleFueraDeHorario() {
     if (mostrarFueraHorario) {
         boton.textContent = "Ocultar fuera de horario";
         avisoHorario.style.display = "none";
-        avisoManual.style.display = "block";
-
-        // Activar intervalo si no estaba ya
-        if (!intervaloSolicitudes) {
-            cargarSolicitudes();
-            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
-        }
+        if (avisoManual) avisoManual.style.display = "block";
     } else {
         boton.textContent = "Ver también fuera de horario";
-        avisoManual.style.display = "none";
+        if (avisoManual) avisoManual.style.display = "none";
         avisoHorario.style.display = "block";
-
-        if (intervaloSolicitudes) {
-            clearInterval(intervaloSolicitudes);
-            intervaloSolicitudes = null;
-        }
     }
 
-    // 🔄 Vuelve a cargar todas las solicitudes según el nuevo estado
+    // Forzar recarga de solicitudes
     cargarSolicitudes();
+}
+
+// Al inicio del documento:
+const ahora = new Date();
+const hora = ahora.getHours();
+const dia = ahora.getDay();
+const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+
+// Cargar preferencia de visualización
+mostrarFueraHorario = localStorage.getItem('mostrarFueraHorario') === 'true';
+
+if (!dentroHorario && !mostrarFueraHorario) {
+    document.getElementById("avisoHorario").style.display = "block";
 }
 
 function verDetalles(p) {

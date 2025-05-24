@@ -202,38 +202,6 @@
 
   <script src="/static/script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-  <script>
-    let mostrarFueraHorario = false;
-  
-    function toggleFueraDeHorario() {
-      mostrarFueraHorario = !mostrarFueraHorario;
-      const filas = document.querySelectorAll("#solicitudesBody tr");
-      filas.forEach(fila => {
-        const visible = fila.getAttribute("data-visible") === "true";
-        if (!visible) {
-          fila.style.display = mostrarFueraHorario ? "table-row" : "none";
-        }
-      });
-  
-      const boton = document.querySelector("#avisoHorario button");
-      boton.textContent = mostrarFueraHorario ? "Ocultar fuera de horario" : "Ver también fuera de horario";
-    }
-  
-    document.addEventListener("DOMContentLoaded", () => {
-      const ahora = new Date();
-      const hora = ahora.getHours();
-      const dia = ahora.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
-  
-      const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-  
-      if (!dentroHorario) {
-        document.getElementById("avisoHorario").style.display = "block";
-        if (window.stopAutoRefreshSolicitudes) {
-          stopAutoRefreshSolicitudes();  // si tienes una función así en script.js
-        }
-      }
-    });
-  </script>
 
 </body>
 </html>

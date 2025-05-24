@@ -1625,7 +1625,7 @@ def obtener_estadisticas_google_sheets(modo="mes"):
     try:
         SCOPES = [
             'https://www.googleapis.com/auth/spreadsheets',
-            'https://www.googleapis.com/auth/drive
+            'https://www.googleapis.com/auth/drive'
         ]
         cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
         cred_json = base64.b64decode(cred_base64)

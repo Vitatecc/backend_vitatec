@@ -284,8 +284,9 @@ def panel():
 
 @app.route('/formulario')
 def formulario_alta():
-    mensaje = session.pop("mensaje_formulario", None)
-    return render_template('formulario.html', datos={}, errores={}, mensaje=mensaje)
+    mensaje = request.args.get("mensaje")
+    mostrar_mensaje = mensaje == "ok"
+    return render_template('formulario.html', datos={}, errores={}, mensaje=mostrar_mensaje)
 
 @app.route('/api/solicitud-alta', methods=['POST'])
 def solicitud_alta():
@@ -366,8 +367,7 @@ def solicitud_alta():
             return render_template("formulario.html", datos=datos, errores={"error_general": f"Error interno: {e}"})
 
     # 🟢 Si está dentro de horario, mostrar mensaje normal
-    session["mensaje_formulario"] = "Solicitud recibida correctamente" 
-    return redirect(url_for("formulario_alta"))
+    return redirect(url_for("formulario_alta", mensaje="ok"))
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])
 @require_api_key

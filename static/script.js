@@ -10,18 +10,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const ahora = new Date();
     const hora = ahora.getHours();
-    const dia = ahora.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
-
+    const dia = ahora.getDay();
     const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
 
-    if (!dentroHorario) {
+    // Recuperar estado desde localStorage
+    mostrarFueraHorario = localStorage.getItem("mostrarFueraHorario") === "true";
+
+    if (mostrarFueraHorario) {
+        document.querySelector("#avisoHorario button").textContent = "Ocultar fuera de horario";
+        document.getElementById("avisoRecordatorio").style.display = "block";
+        cargarSolicitudes();
+        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+    } else if (!dentroHorario) {
         document.getElementById("avisoHorario").style.display = "block";
-        // No activamos intervalo aquí
     } else {
         cargarSolicitudes();
         intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
     }
 });
+
 
 let intervaloSolicitudes = null;
 let mostrarFueraHorario = false;
@@ -273,10 +280,8 @@ function cargarEstadisticas() {
 
 function toggleFueraDeHorario() {
     mostrarFueraHorario = !mostrarFueraHorario;
-    
-    // Actualizar el localStorage para persistencia
     localStorage.setItem('mostrarFueraHorario', mostrarFueraHorario);
-    
+
     const boton = document.querySelector("#avisoHorario button");
     const avisoHorario = document.getElementById("avisoHorario");
     const avisoManual = document.getElementById("avisoRecordatorio");
@@ -284,28 +289,35 @@ function toggleFueraDeHorario() {
     if (mostrarFueraHorario) {
         boton.textContent = "Ocultar fuera de horario";
         avisoHorario.style.display = "none";
-        if (avisoManual) avisoManual.style.display = "block";
+        avisoManual.style.display = "block";
+
+        // ⚠️ Activar el intervalo de actualización si no está activo
+        if (!intervaloSolicitudes) {
+            cargarSolicitudes();
+            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        }
+
     } else {
         boton.textContent = "Ver también fuera de horario";
-        if (avisoManual) avisoManual.style.display = "none";
-        avisoHorario.style.display = "block";
+        avisoManual.style.display = "none";
+
+        // Solo mostrar aviso si realmente estamos fuera del horario
+        const ahora = new Date();
+        const hora = ahora.getHours();
+        const dia = ahora.getDay();
+        const fueraHorario = !(dia >= 1 && dia <= 5 && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20)));
+        if (fueraHorario) {
+            avisoHorario.style.display = "block";
+        }
+
+        // Detener intervalo
+        if (intervaloSolicitudes) {
+            clearInterval(intervaloSolicitudes);
+            intervaloSolicitudes = null;
+        }
     }
 
-    // Forzar recarga de solicitudes
     cargarSolicitudes();
-}
-
-// Al inicio del documento:
-const ahora = new Date();
-const hora = ahora.getHours();
-const dia = ahora.getDay();
-const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-
-// Cargar preferencia de visualización
-mostrarFueraHorario = localStorage.getItem('mostrarFueraHorario') === 'true';
-
-if (!dentroHorario && !mostrarFueraHorario) {
-    document.getElementById("avisoHorario").style.display = "block";
 }
 
 function verDetalles(p) {

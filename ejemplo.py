@@ -284,7 +284,8 @@ def panel():
 
 @app.route('/formulario')
 def formulario_alta():
-    return render_template('formulario.html', datos={}, errores={})
+    mensaje = session.pop("mensaje_formulario", None)
+    return render_template('formulario.html', datos={}, errores={}, mensaje=mensaje)
 
 @app.route('/api/solicitud-alta', methods=['POST'])
 def solicitud_alta():
@@ -359,12 +360,14 @@ def solicitud_alta():
             if resultado.returncode != 0:
                 raise Exception(resultado.stderr)
 
-            return render_template('formulario.html', datos={}, errores={}, mensaje="Alta realizada automáticamente. Recibirá un WhatsApp de confirmación.")
+            session["mensaje_formulario"] = "Alta realizada automáticamente. Recibirá un WhatsApp de confirmación."
+            return redirect(url_for("formulario_alta"))
         except Exception as e:
             return render_template("formulario.html", datos=datos, errores={"error_general": f"Error interno: {e}"})
 
     # 🟢 Si está dentro de horario, mostrar mensaje normal
-    return render_template('formulario.html', datos={}, errores={}, mensaje="Solicitud recibida correctamente")
+    session["mensaje_formulario"] = "Solicitud recibida correctamente" 
+    return redirect(url_for("formulario_alta"))
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])
 @require_api_key

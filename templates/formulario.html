@@ -68,13 +68,18 @@
 </div>
 
 <script>
-  // ⚠️ Solución para Render: forzar redirección si no se recarga bien tras POST
-  if (window.location.pathname === "/formulario" && !window.location.search.includes("mensaje=ok")) {
-    const method = performance.getEntriesByType("navigation")[0]?.type;
-    if (method === "navigate" || method === "reload") {
-      // Evitamos bucle infinito
-      window.location.href = "/formulario?mensaje=ok";
-    }
+  // Guardar flag al enviar formulario
+  document.querySelector("form")?.addEventListener("submit", () => {
+    sessionStorage.setItem("formEnviado", "true");
+  });
+
+  // Si hemos enviado el formulario justo antes y estamos en /formulario sin el ?mensaje=ok
+  if (sessionStorage.getItem("formEnviado") === "true" &&
+      window.location.pathname === "/formulario" &&
+      !window.location.search.includes("mensaje=ok")) {
+    sessionStorage.removeItem("formEnviado"); // Limpiar flag
+    window.location.href = "/formulario?mensaje=ok";
   }
 </script>
+
 {% endblock %}

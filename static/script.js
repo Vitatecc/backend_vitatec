@@ -1,3 +1,7 @@
+let intervaloSolicitudes = null;
+let mostrarFueraHorario = localStorage.getItem("mostrarFueraHorario") === "true";
+let dnisRegistrados = [];
+
 document.addEventListener("DOMContentLoaded", function () {
     cargarLogs();
     cargarMensajes();
@@ -13,26 +17,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const dia = ahora.getDay();
     const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
 
-    // Recuperar estado desde localStorage
-    mostrarFueraHorario = localStorage.getItem("mostrarFueraHorario") === "true";
-
     if (mostrarFueraHorario) {
-        document.querySelector("#avisoHorario button").textContent = "Ocultar fuera de horario";
+        const boton = document.querySelector("#avisoHorario button");
+        if (boton) boton.textContent = "Ocultar fuera de horario";
         document.getElementById("avisoRecordatorio").style.display = "block";
         cargarSolicitudes();
-        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        if (!intervaloSolicitudes) {
+            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        }
     } else if (!dentroHorario) {
         document.getElementById("avisoHorario").style.display = "block";
     } else {
         cargarSolicitudes();
-        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        if (!intervaloSolicitudes) {
+            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        }
     }
 });
-
-
-let intervaloSolicitudes = null;
-let mostrarFueraHorario = false;
-let dnisRegistrados = [];
 
 fetch("/api/pacientes/dnis")
     .then(res => res.json())
@@ -76,7 +77,7 @@ function cargarSolicitudes() {
             }
 
             // Obtener DNIs registrados primero
-            const dnisRegistrados = await fetch('/api/pacientes/dnis')
+            dnisRegistrados = await fetch('/api/pacientes/dnis')
                 .then(res => res.json())
                 .then(data => data.map(d => d.toLowerCase()));
 
@@ -291,7 +292,7 @@ function toggleFueraDeHorario() {
         avisoHorario.style.display = "none";
         avisoManual.style.display = "block";
 
-        // ⚠️ Activar el intervalo de actualización si no está activo
+        // Activar intervalo si no está activo
         if (!intervaloSolicitudes) {
             cargarSolicitudes();
             intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
@@ -301,7 +302,6 @@ function toggleFueraDeHorario() {
         boton.textContent = "Ver también fuera de horario";
         avisoManual.style.display = "none";
 
-        // Solo mostrar aviso si realmente estamos fuera del horario
         const ahora = new Date();
         const hora = ahora.getHours();
         const dia = ahora.getDay();
@@ -310,7 +310,7 @@ function toggleFueraDeHorario() {
             avisoHorario.style.display = "block";
         }
 
-        // Detener intervalo
+        // Detener intervalo si estaba activo
         if (intervaloSolicitudes) {
             clearInterval(intervaloSolicitudes);
             intervaloSolicitudes = null;
@@ -319,6 +319,7 @@ function toggleFueraDeHorario() {
 
     cargarSolicitudes();
 }
+
 
 function verDetalles(p) {
     const existe = dnisRegistrados.includes(p.dni.toLowerCase());

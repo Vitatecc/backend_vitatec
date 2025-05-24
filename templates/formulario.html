@@ -66,4 +66,15 @@
     </form>
   {% endif %}
 </div>
+
+<script>
+  // ⚠️ Solución para Render: forzar redirección si no se recarga bien tras POST
+  if (window.location.pathname === "/formulario" && !window.location.search.includes("mensaje=ok")) {
+    const method = performance.getEntriesByType("navigation")[0]?.type;
+    if (method === "navigate" || method === "reload") {
+      // Evitamos bucle infinito
+      window.location.href = "/formulario?mensaje=ok";
+    }
+  }
+</script>
 {% endblock %}

@@ -360,8 +360,7 @@ def solicitud_alta():
             )
             if resultado.returncode != 0:
                 raise Exception(resultado.stderr)
-
-            session["mensaje_formulario"] = "Alta realizada automáticamente. Recibirá un WhatsApp de confirmación."
+                
             return redirect(url_for("formulario_alta"))
         except Exception as e:
             return render_template("formulario.html", datos=datos, errores={"error_general": f"Error interno: {e}"})

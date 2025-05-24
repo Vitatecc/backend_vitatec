@@ -206,8 +206,8 @@ function cargarAuditoria() {
 
 function cargarEstadisticas() {
     const tipo = document.querySelector('input[name="tipoEstadistica"]:checked').value;
-    const url = tipo === "mes" ? '/webhook/stats' : '/webhook/stats?modo=dia';
-
+    const url = tipo === "mes" ? '/webhook/stats-google' : '/webhook/stats-google?modo=dia';
+    
     fetch(url)
         .then(res => res.json())
         .then(data => {

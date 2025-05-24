@@ -145,9 +145,14 @@ def obtener_solicitud_individual(nombre_archivo):
         with open(ruta, "r", encoding="utf-8") as f:
             datos = json.load(f)
 
+        # 🔧 Asegurar que el campo visible_en_panel está presente (por retrocompatibilidad)
+        if "visible_en_panel" not in datos:
+            datos["visible_en_panel"] = False
+
         return jsonify(datos)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

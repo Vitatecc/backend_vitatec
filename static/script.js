@@ -276,6 +276,7 @@ function cargarEstadisticas() {
             document.getElementById("citasHoy").textContent = totalHoy;
         });
 }
+
 function toggleFueraDeHorario() {
     mostrarFueraHorario = !mostrarFueraHorario;
 
@@ -288,16 +289,35 @@ function toggleFueraDeHorario() {
     });
 
     const boton = document.querySelector("#avisoHorario button");
-    boton.textContent = mostrarFueraHorario ? "Ocultar fuera de horario" : "Ver también fuera de horario";
+    const avisoManual = document.getElementById("avisoManual");
 
-    if (mostrarFueraHorario && !intervaloSolicitudes) {
+    if (mostrarFueraHorario) {
+        // Activado el modo fuera de horario manual
+        boton.textContent = "Ocultar fuera de horario";
+        boton.style.backgroundColor = "#dc3545"; // rojo
+        avisoManual.style.display = "block";
+        document.getElementById("avisoHorario").style.display = "none";
+
+        if (!intervaloSolicitudes) {
+            cargarSolicitudes();
+            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        }
+    } else {
+        // Modo automático restablecido
+        boton.textContent = "Ver también fuera de horario";
+        boton.style.backgroundColor = "#008CBA"; // azul
+        avisoManual.style.display = "none";
+
+        if (intervaloSolicitudes) {
+            clearInterval(intervaloSolicitudes);
+            intervaloSolicitudes = null;
+        }
+
+        document.getElementById("avisoHorario").style.display = "block";
         cargarSolicitudes();
-        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
-    } else if (!mostrarFueraHorario && intervaloSolicitudes) {
-        clearInterval(intervaloSolicitudes);
-        intervaloSolicitudes = null;
     }
 }
+
 
 function verDetalles(p) {
     const existe = dnisRegistrados.includes(p.dni.toLowerCase());

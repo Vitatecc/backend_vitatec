@@ -1651,10 +1651,20 @@ def obtener_estadisticas_google_sheets(modo="mes"):
         df = pd.DataFrame({"Fecha": fechas})
         if df.empty:
             return {"labels": [], "values": []}
+        ahora = datetime.now()
+        anio_actual = ahora.year
+        mes_actual = ahora.month
 
         if modo == "mes":
+            # Filtra solo fechas del año actual
+            df = df[df['Fecha'].dt.year == anio_actual]
             conteo = df.groupby(df['Fecha'].dt.strftime('%B')).size()
         else:
+            # Filtra solo fechas del mes y año actual
+            df = df[
+                (df['Fecha'].dt.year == anio_actual) &
+                (df['Fecha'].dt.month == mes_actual)
+            ]
             conteo = df.groupby(df['Fecha'].dt.strftime('%Y-%m-%d')).size()
 
         return {

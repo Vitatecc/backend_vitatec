@@ -317,38 +317,37 @@ def solicitud_alta():
         )
     )
 
-    if dentro_de_horario:
-        # ✅ GUARDAR COMO SOLICITUD PARA EL PANEL
-        solicitudes_dir = os.path.join("data", "solicitudes")
-        os.makedirs(solicitudes_dir, exist_ok=True)
+    # ✅ Siempre guardar JSON con visibilidad según el horario
+    solicitudes_dir = os.path.join("data", "solicitudes")
+    os.makedirs(solicitudes_dir, exist_ok=True)
 
-        dni = datos["dni"].lower()
-        archivo_solicitud = os.path.join(solicitudes_dir, f"{dni}.json")
-        with open(archivo_solicitud, "w", encoding="utf-8") as f:
-            json.dump(datos, f, indent=2, ensure_ascii=False)
+    dni = datos["dni"].lower()
+    datos["visible_en_panel"] = dentro_de_horario  # Flag para mostrar o no en el panel
+    archivo_solicitud = os.path.join(solicitudes_dir, f"{dni}.json")
 
-        # 📝 Registro en auditoría
-        evento = {
-            "dni": dni,
-            "accion": "Solicitud recibida",
-            "usuario": dni,
-            "timestamp": ahora.isoformat()
-        }
+    with open(archivo_solicitud, "w", encoding="utf-8") as f:
+        json.dump(datos, f, indent=2, ensure_ascii=False)
 
-        try:
-            with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
-                auditoria = json.load(f)
-        except:
-            auditoria = []
+    # 📝 Registrar en auditoría
+    evento = {
+        "dni": dni,
+        "accion": "Solicitud recibida",
+        "usuario": dni,
+        "timestamp": ahora.isoformat()
+    }
 
-        auditoria.append(evento)
-        with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
-            json.dump(auditoria, f, indent=2, ensure_ascii=False)
+    try:
+        with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
+            auditoria = json.load(f)
+    except:
+        auditoria = []
 
-        return render_template('formulario.html', datos={}, errores={}, mensaje="Solicitud recibida correctamente")
-    
-    else:
-        # ⏰ FUERA DE HORARIO: se ejecuta directamente Crear_usuario.py
+    auditoria.append(evento)
+    with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
+        json.dump(auditoria, f, indent=2, ensure_ascii=False)
+
+    # ⏰ Si está fuera de horario, ejecutar Crear_usuario.py
+    if not dentro_de_horario:
         try:
             ruta_script = os.path.join(BASE_DIR, "Crear_usuario.py")
             resultado = subprocess.run(
@@ -357,14 +356,15 @@ def solicitud_alta():
                 text=True,
                 capture_output=True
             )
-
             if resultado.returncode != 0:
                 raise Exception(resultado.stderr)
 
             return render_template('formulario.html', datos={}, errores={}, mensaje="Alta realizada automáticamente. Recibirá un WhatsApp de confirmación.")
-        
         except Exception as e:
             return render_template("formulario.html", datos=datos, errores={"error_general": f"Error interno: {e}"})
+
+    # 🟢 Si está dentro de horario, mostrar mensaje normal
+    return render_template('formulario.html', datos={}, errores={}, mensaje="Solicitud recibida correctamente")
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])
 @require_api_key

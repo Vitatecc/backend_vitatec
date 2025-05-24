@@ -122,14 +122,35 @@ def login_required(f):
 # ==============================================
 # CLASE PARA MANEJO DE ESICLINIC
 # ==============================================
-@app.route('/api/ver-solicitudes', methods=['GET'])
-def ver_solicitudes():
-    solicitudes_dir = os.path.join(BASE_DIR, 'data', 'solicitudes')
-    if not os.path.exists(solicitudes_dir):
-        return jsonify({"status": "error", "message": "No existe la carpeta 'solicitudes'"}), 404
+def dentro_horario_laboral():
+    ahora = datetime.now()
+    dia_semana = ahora.weekday()  # 0=lunes, 6=domingo
+    hora_actual = ahora.time()
+    
+    # Horario laboral: L-V 10-14 y 16-20
+    return (0 <= dia_semana <= 4 and 
+           ((time(10, 0) <= hora_actual <= time(14, 0)) or 
+           (time(16, 0) <= hora_actual <= time(20, 0)))
 
-    archivos = [f for f in os.listdir(solicitudes_dir) if f.endswith(".json")]
-    return jsonify({"status": "ok", "archivos": archivos})
+@app.route('/api/ver-solicitudes', methods=['GET'])
+@login_required
+def ver_solicitudes():
+    try:
+        if not RUTA_SOLICITUDES.exists():
+            return jsonify({"status": "ok", "archivos": []})
+            
+        archivos = [f.name for f in RUTA_SOLICITUDES.glob("*.json")]
+        return jsonify({"status": "ok", "archivos": archivos})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+@app.route('/api/toggle-fuera-horario', methods=['POST'])
+@login_required
+def toggle_fuera_horario():
+    data = request.get_json()
+    mostrar = data.get('mostrar', False)
+    
+    # Aquí podrías guardar esta preferencia por usuario si lo necesitas
+    return jsonify({"status": "success", "mostrar": mostrar})
 
 # ==============================================
 # WEBHOOKS MEJORADOS
@@ -144,9 +165,10 @@ def obtener_solicitud_individual(nombre_archivo):
 
         with open(ruta, "r", encoding="utf-8") as f:
             datos = json.load(f)
-
-        # Asegurar que el campo existe
-        datos.setdefault("visible_en_panel", False)
+        
+        # Asegurar campos importantes
+        datos.setdefault("visible_en_panel", dentro_horario_laboral())
+        datos.setdefault("dni", nombre_archivo.replace('.json', ''))
         
         return jsonify(datos)
     except Exception as e:

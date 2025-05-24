@@ -279,7 +279,7 @@ function toggleFueraDeHorario() {
     
     const boton = document.querySelector("#avisoHorario button");
     const avisoHorario = document.getElementById("avisoHorario");
-    const avisoManual = document.getElementById("avisoManual");
+    const avisoManual = document.getElementById("avisoRecordatorio");
 
     if (mostrarFueraHorario) {
         boton.textContent = "Ocultar fuera de horario";

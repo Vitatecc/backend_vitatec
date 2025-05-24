@@ -1623,7 +1623,7 @@ def login():
     return render_template("login.html", error=error)
 def obtener_estadisticas_google_sheets(modo="mes"):
     try:
-        SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
         cred_json = base64.b64decode(cred_base64)
         creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)

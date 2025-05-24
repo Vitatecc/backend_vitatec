@@ -289,34 +289,32 @@ function toggleFueraDeHorario() {
     });
 
     const boton = document.querySelector("#avisoHorario button");
+    const avisoHorario = document.getElementById("avisoHorario");
     const avisoManual = document.getElementById("avisoManual");
 
     if (mostrarFueraHorario) {
-        // Activado el modo fuera de horario manual
         boton.textContent = "Ocultar fuera de horario";
-        boton.style.backgroundColor = "#dc3545"; // rojo
-        avisoManual.style.display = "block";
-        document.getElementById("avisoHorario").style.display = "none";
+        avisoHorario.style.display = "none";   // Ocultar aviso amarillo
+        avisoManual.style.display = "block";   // Mostrar aviso rojo
 
+        // Activar intervalo si estaba parado
         if (!intervaloSolicitudes) {
             cargarSolicitudes();
             intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
         }
     } else {
-        // Modo automático restablecido
         boton.textContent = "Ver también fuera de horario";
-        boton.style.backgroundColor = "#008CBA"; // azul
-        avisoManual.style.display = "none";
+        avisoManual.style.display = "none";    // Ocultar aviso rojo
+        avisoHorario.style.display = "block";  // Mostrar aviso amarillo (si estamos fuera de horario)
 
         if (intervaloSolicitudes) {
             clearInterval(intervaloSolicitudes);
             intervaloSolicitudes = null;
         }
-
-        document.getElementById("avisoHorario").style.display = "block";
-        cargarSolicitudes();
+        cargarSolicitudes();  // Re-cargar para aplicar el filtro
     }
 }
+
 
 
 function verDetalles(p) {

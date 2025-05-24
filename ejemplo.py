@@ -25,6 +25,8 @@ import time         # TIEMPO
 from collections import defaultdict
 import gspread
 from google.oauth2.service_account import Credentials
+import base64
+from io import BytesIO
  
 ### IMPORTS DE LIBRERIAS ###
  
@@ -1622,7 +1624,9 @@ def login():
 def obtener_estadisticas_google_sheets(modo="mes"):
     try:
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-        creds = Credentials.from_service_account_file("automatizacionvitatec-456311-81a21cdf147d.json", scopes=SCOPES)
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
 
         client = gspread.authorize(creds)
         spreadsheet = client.open("pacientes.xlsx")  # Asegúrate de que el nombre coincida

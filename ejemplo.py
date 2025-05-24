@@ -162,18 +162,13 @@ def obtener_solicitud_individual(nombre_archivo):
         ruta = RUTA_SOLICITUDES / nombre_archivo
         if not ruta.exists():
             return jsonify({"status": "error", "message": "Archivo no encontrado"}), 404
-
         with open(ruta, "r", encoding="utf-8") as f:
             datos = json.load(f)
-        
-        # Asegurar campos importantes
-        datos.setdefault("visible_en_panel", dentro_horario_laboral())
-        datos.setdefault("dni", nombre_archivo.replace('.json', ''))
-        
+        if "visible_en_panel" not in datos:
+            datos["visible_en_panel"] = False
         return jsonify(datos)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

@@ -107,10 +107,18 @@ function cargarSolicitudes() {
 
             // Mostrar aviso solo si no hay solicitudes visibles
             const aviso = document.getElementById("avisoHorario");
-            if (!algunaVisible && aviso) {
-                aviso.style.display = "block";
-            } else if (aviso) {
-                aviso.style.display = "none";
+            const recordatorio = document.getElementById("avisoRecordatorio");
+            
+            if (mostrarFueraHorario) {
+                if (aviso) aviso.style.display = "none";
+                if (recordatorio) recordatorio.style.display = "block";
+            } else {
+                if (recordatorio) recordatorio.style.display = "none";
+                if (!algunaVisible && aviso) {
+                    aviso.style.display = "block";
+                } else if (algunaVisible && aviso) {
+                    aviso.style.display = "none";
+                }
             }
         });
 }

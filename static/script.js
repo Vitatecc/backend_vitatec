@@ -2,37 +2,32 @@ let intervaloSolicitudes = null;
 let mostrarFueraHorario = localStorage.getItem("mostrarFueraHorario") === "true";
 let dnisRegistrados = [];
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
+    // Inicializar primero el estado
+    mostrarFueraHorario = localStorage.getItem('mostrarFueraHorario') === 'true';
+    actualizarVistaHorario();
+
+    // Luego cargar los datos
     cargarLogs();
     cargarMensajes();
     cargarAuditoria();
     cargarEstadisticas();
+    cargarSolicitudes();
+
+    // Configurar intervalos
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const dia = ahora.getDay();
+    const dentroHorario = (dia >= 1 && dia <= 5) && 
+                         ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+
+    if (mostrarFueraHorario || dentroHorario) {
+        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+    }
 
     document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
         radio.addEventListener('change', cargarEstadisticas);
     });
-
-    const ahora = new Date();
-    const hora = ahora.getHours();
-    const dia = ahora.getDay();
-    const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-
-    if (mostrarFueraHorario) {
-        const boton = document.querySelector("#avisoHorario button");
-        if (boton) boton.textContent = "Ocultar fuera de horario";
-        document.getElementById("avisoRecordatorio").style.display = "block";
-        cargarSolicitudes();
-        if (!intervaloSolicitudes) {
-            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
-        }
-    } else if (!dentroHorario) {
-        document.getElementById("avisoHorario").style.display = "block";
-    } else {
-        cargarSolicitudes();
-        if (!intervaloSolicitudes) {
-            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
-        }
-    }
 });
 
 fetch("/api/pacientes/dnis")
@@ -279,45 +274,46 @@ function cargarEstadisticas() {
         });
 }
 
+// Modificar la función toggleFueraDeHorario
 function toggleFueraDeHorario() {
     mostrarFueraHorario = !mostrarFueraHorario;
     localStorage.setItem('mostrarFueraHorario', mostrarFueraHorario);
 
+    // Enviar preferencia al servidor
+    fetch('/api/toggle-fuera-horario', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mostrar: mostrarFueraHorario })
+    }).then(response => response.json())
+      .then(data => {
+          actualizarVistaHorario();
+          cargarSolicitudes();
+      });
+}
+
+function actualizarVistaHorario() {
     const boton = document.querySelector("#avisoHorario button");
     const avisoHorario = document.getElementById("avisoHorario");
-    const avisoManual = document.getElementById("avisoRecordatorio");
+    const avisoRecordatorio = document.getElementById("avisoRecordatorio");
 
     if (mostrarFueraHorario) {
-        boton.textContent = "Ocultar fuera de horario";
-        avisoHorario.style.display = "none";
-        avisoManual.style.display = "block";
-
-        // Activar intervalo si no está activo
-        if (!intervaloSolicitudes) {
-            cargarSolicitudes();
-            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
-        }
-
+        if (boton) boton.textContent = "Ocultar fuera de horario";
+        if (avisoHorario) avisoHorario.style.display = "none";
+        if (avisoRecordatorio) avisoRecordatorio.style.display = "block";
     } else {
-        boton.textContent = "Ver también fuera de horario";
-        avisoManual.style.display = "none";
-
+        if (boton) boton.textContent = "Ver también fuera de horario";
+        if (avisoRecordatorio) avisoRecordatorio.style.display = "none";
+        
         const ahora = new Date();
         const hora = ahora.getHours();
         const dia = ahora.getDay();
-        const fueraHorario = !(dia >= 1 && dia <= 5 && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20)));
-        if (fueraHorario) {
-            avisoHorario.style.display = "block";
-        }
-
-        // Detener intervalo si estaba activo
-        if (intervaloSolicitudes) {
-            clearInterval(intervaloSolicitudes);
-            intervaloSolicitudes = null;
-        }
+        const dentroHorario = (dia >= 1 && dia <= 5) && 
+                            ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+        
+        if (avisoHorario) avisoHorario.style.display = dentroHorario ? "none" : "block";
     }
-
-    cargarSolicitudes();
 }
 
 

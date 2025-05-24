@@ -282,36 +282,31 @@ def get_solicitudes():
 def panel():
     return render_template('panel.html')
 
-@app.route('/formulario')
+@app.route("/formulario", methods=["GET", "POST"])
 def formulario_alta():
-    mensaje = request.args.get("mensaje")
-    mostrar_mensaje = mensaje == "ok"
-    return render_template('formulario.html', datos={}, errores={}, mensaje=mostrar_mensaje), 200
+    if request.method == "GET":
+        mensaje = request.args.get("mensaje")
+        mostrar_mensaje = mensaje == "ok"
+        return render_template('formulario.html', datos={}, errores={}, mensaje=mostrar_mensaje), 200
 
-@app.route('/api/solicitud-alta', methods=['POST'])
-def solicitud_alta():
+    # POST → procesamiento de formulario
     datos = request.form.to_dict()
     errores = {}
 
-    # Validación de campos obligatorios
     campos_obligatorios = ['nombre', 'apellidos', 'dni', 'email', 'movil']
     for campo in campos_obligatorios:
         if not datos.get(campo):
             errores[campo] = f"{campo.capitalize()} obligatorio"
 
-    # Validación básica de email
     if datos.get("email") and "@" not in datos["email"]:
         errores["email"] = "Email no válido"
 
-    # Si hay errores, se vuelve al formulario
     if errores:
         return render_template("formulario.html", datos=datos, errores=errores)
 
-    # 📅 Comprobar si estamos en horario laboral
     ahora = datetime.now()
-    dia_semana = ahora.weekday()  # 0 = lunes, 6 = domingo
+    dia_semana = ahora.weekday()
     hora_actual = ahora.time()
-
     dentro_de_horario = (
         dia_semana < 5 and (
             dtime(10, 0) <= hora_actual <= dtime(14, 0) or
@@ -319,18 +314,16 @@ def solicitud_alta():
         )
     )
 
-    # ✅ Siempre guardar JSON con visibilidad según el horario
     solicitudes_dir = os.path.join("data", "solicitudes")
     os.makedirs(solicitudes_dir, exist_ok=True)
 
     dni = datos["dni"].lower()
-    datos["visible_en_panel"] = dentro_de_horario  # Flag para mostrar o no en el panel
+    datos["visible_en_panel"] = dentro_de_horario
     archivo_solicitud = os.path.join(solicitudes_dir, f"{dni}.json")
 
     with open(archivo_solicitud, "w", encoding="utf-8") as f:
         json.dump(datos, f, indent=2, ensure_ascii=False)
 
-    # 📝 Registrar en auditoría
     evento = {
         "dni": dni,
         "accion": "Solicitud recibida",
@@ -348,7 +341,6 @@ def solicitud_alta():
     with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
         json.dump(auditoria, f, indent=2, ensure_ascii=False)
 
-    # ⏰ Si está fuera de horario, ejecutar Crear_usuario.py
     if not dentro_de_horario:
         try:
             ruta_script = os.path.join(BASE_DIR, "Crear_usuario.py")
@@ -360,13 +352,11 @@ def solicitud_alta():
             )
             if resultado.returncode != 0:
                 raise Exception(resultado.stderr)
-                
-            return redirect(url_for("formulario_alta"))
         except Exception as e:
             return render_template("formulario.html", datos=datos, errores={"error_general": f"Error interno: {e}"})
 
-    # 🟢 Si está dentro de horario, mostrar mensaje normal
     return redirect(url_for("formulario_alta", mensaje="ok"))
+
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])
 @require_api_key

@@ -56,6 +56,7 @@ function cargarSolicitudes() {
                 try {
                     const response = await fetch(`/webhook/solicitud/${archivo}`);
                     const p = await response.json();
+                    if (!p.visible_en_panel) continue;  // ❌ Oculta las solicitudes fuera de horario
 
                     const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
                     const fila = document.createElement("tr");

@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const dia = ahora.getDay();
     const dentroHorario = (dia >= 1 && dia <= 5) && 
                          ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-    let mostrarFueraHorario = localStorage.getItem("mostrarFueraHorario") === "true";
     if (mostrarFueraHorario || dentroHorario) {
         intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
     }
@@ -293,6 +292,7 @@ function toggleFueraDeHorario() {
 }
 
 function actualizarVistaHorario() {
+    const boton = document.querySelector("#avisoHorario button"); // 🔁 MOVER AQUÍ
     const avisoHorario = document.getElementById("avisoHorario");
     const avisoRecordatorio = document.getElementById("avisoRecordatorio");
 
@@ -303,20 +303,17 @@ function actualizarVistaHorario() {
     } else {
         if (boton) boton.textContent = "Ver también fuera de horario";
         if (avisoRecordatorio) avisoRecordatorio.style.display = "none";
-        
+
         const ahora = new Date();
         const hora = ahora.getHours();
         const dia = ahora.getDay();
         const dentroHorario = (dia >= 1 && dia <= 5) && 
                             ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-        
+
         if (avisoHorario) avisoHorario.style.display = dentroHorario ? "none" : "block";
     }
-    const boton = document.querySelector("#avisoHorario button");
-    if (boton) {
-        boton.textContent = "Ocultar fuera de horario";
-        boton.onclick = toggleFueraDeHorario;
-    }
+
+    if (boton) boton.onclick = toggleFueraDeHorario;
 }
 
 

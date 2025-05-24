@@ -1,11 +1,12 @@
 flask
-pandas
-selenium
-python-dotenv
-openpyxl
-gunicorn
 flask-cors
+gunicorn
+pandas
+openpyxl
+numpy
+selenium
 webdriver-manager
+python-dotenv
 gspread
 google-auth
 google-auth-oauthlib

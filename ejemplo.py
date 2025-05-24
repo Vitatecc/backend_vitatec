@@ -345,7 +345,7 @@ def solicitud_alta():
         with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
             json.dump(auditoria, f, indent=2, ensure_ascii=False)
 
-        return render_template('formulario.html', datos={}, errores={}, mensaje="Solicitud recibida. Nos pondremos en contacto contigo.")
+        return render_template('formulario.html', datos={}, errores={}, mensaje="Solicitud recibida correctamente")
     
     else:
         # ⏰ FUERA DE HORARIO: se ejecuta directamente Crear_usuario.py

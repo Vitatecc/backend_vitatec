@@ -82,7 +82,7 @@ function cargarSolicitudes() {
                     const p = await response.json();
 
                     const fila = document.createElement("tr");
-                    const visible = p.visible_en_panel;
+                    const visible = Boolean(p.visible_en_panel);
 
                     fila.setAttribute("data-visible", visible ? "true" : "false");
 

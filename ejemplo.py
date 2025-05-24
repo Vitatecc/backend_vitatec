@@ -367,10 +367,7 @@ def solicitud_alta():
             return render_template("formulario.html", datos=datos, errores={"error_general": f"Error interno: {e}"})
 
     # 🟢 Si está dentro de horario, mostrar mensaje normal
-    return render_template('formulario.html',
-                           datos={},
-                           errores={},
-                           mensaje=True), 200
+    return redirect(url_for("formulario_alta", mensaje="ok"))
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])
 @require_api_key

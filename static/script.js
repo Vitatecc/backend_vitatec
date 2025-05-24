@@ -50,13 +50,16 @@ function cargarSolicitudes() {
                 cuerpo.appendChild(fila);
                 return;
             }
+            
+            let algunaVisible = false;
 
-            // Cargar y mostrar cada solicitud individual
             for (const archivo of data.archivos) {
                 try {
                     const response = await fetch(`/webhook/solicitud/${archivo}`);
                     const p = await response.json();
-                    if (!p.visible_en_panel) continue;  // ❌ Oculta las solicitudes fuera de horario
+
+                    if (!p.visible_en_panel) continue;
+                    algunaVisible = true;
 
                     const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
                     const fila = document.createElement("tr");
@@ -80,6 +83,15 @@ function cargarSolicitudes() {
                 } catch (err) {
                     console.error("Error leyendo solicitud:", archivo, err);
                 }
+            }
+
+            if (!algunaVisible) {
+                const fila = document.createElement("tr");
+                const celda = document.createElement("td");
+                celda.colSpan = 4;
+                celda.innerHTML = `<span style="color: #dc3545;">⚠️ Actualmente estamos fuera del horario laboral. Las solicitudes se crean automáticamente y no aparecerán aquí.</span>`;
+                fila.appendChild(celda);
+                cuerpo.appendChild(fila);
             }
         });
 }

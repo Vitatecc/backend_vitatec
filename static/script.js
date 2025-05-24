@@ -81,39 +81,44 @@ function cargarSolicitudes() {
                     const response = await fetch(`/webhook/solicitud/${archivo}`);
                     const p = await response.json();
 
+                    // 🔍 Log de depuración
+                    console.log("Solicitud cargada:", archivo, p);
+
                     const fila = document.createElement("tr");
                     const visible = Boolean(p.visible_en_panel);
-
                     fila.setAttribute("data-visible", visible ? "true" : "false");
 
-                    if (!visible && !mostrarFueraHorario) {
-                        fila.style.display = "none";
+                    const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
+
+                    if (dniDuplicado) {
+                        fila.classList.add("fila-duplicada");
+                        fila.title = "⚠️ El DNI ya está registrado en pacientes.";
                     }
 
+                    fila.innerHTML = `
+                        <td>${dniDuplicado ? "⚠️ " : ""}${p.nombre} ${p.apellidos}</td>
+                        <td>${p.movil}</td>
+                        <td>${p.email}</td>
+                        <td>
+                            <button onclick='verDetalles(${JSON.stringify(p).replace(/"/g, "&quot;")})'>Ver</button>
+                            <button onclick="aprobarPaciente('${p.dni}')">Aprobar</button>
+                            <button onclick="rechazarPaciente('${p.dni}')">Rechazar</button>
+                        </td>
+                    `;
+
+                    // 💡 Control de visibilidad real
                     if (visible || mostrarFueraHorario) {
-                        const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
-
-                        if (dniDuplicado) {
-                            fila.classList.add("fila-duplicada");
-                            fila.title = "⚠️ El DNI ya está registrado en pacientes.";
-                        }
-
-                        fila.innerHTML = `
-                            <td>${dniDuplicado ? "⚠️ " : ""}${p.nombre} ${p.apellidos}</td>
-                            <td>${p.movil}</td>
-                            <td>${p.email}</td>
-                            <td>
-                                <button onclick='verDetalles(${JSON.stringify(p).replace(/"/g, "&quot;")})'>Ver</button>
-                                <button onclick="aprobarPaciente('${p.dni}')">Aprobar</button>
-                                <button onclick="rechazarPaciente('${p.dni}')">Rechazar</button>
-                            </td>
-                        `;
+                        fila.style.display = "table-row";
+                        cuerpo.appendChild(fila);
+                    } else {
+                        fila.style.display = "none";
                         cuerpo.appendChild(fila);
                     }
 
                     if (visible) {
                         algunaVisible = true;
                     }
+
                 } catch (err) {
                     console.error("Error leyendo solicitud:", archivo, err);
                 }
@@ -122,7 +127,6 @@ function cargarSolicitudes() {
             mostrarAvisos(algunaVisible);
         });
 }
-
 
 
 function aprobarPaciente(dni) {
@@ -288,14 +292,7 @@ function cargarEstadisticas() {
 
 function toggleFueraDeHorario() {
     mostrarFueraHorario = !mostrarFueraHorario;
-
-    const filas = document.querySelectorAll("#solicitudesBody tr");
-    filas.forEach(fila => {
-        const visible = fila.getAttribute("data-visible") === "true";
-        if (!visible) {
-            fila.style.display = mostrarFueraHorario ? "table-row" : "none";
-        }
-    });
+    console.log("🔁 Estado de mostrarFueraHorario:", mostrarFueraHorario);
 
     const boton = document.querySelector("#avisoHorario button");
     const avisoHorario = document.getElementById("avisoHorario");
@@ -303,25 +300,27 @@ function toggleFueraDeHorario() {
 
     if (mostrarFueraHorario) {
         boton.textContent = "Ocultar fuera de horario";
-        avisoHorario.style.display = "none";   // Ocultar aviso amarillo
-        avisoManual.style.display = "block";   // Mostrar aviso rojo
+        avisoHorario.style.display = "none";
+        avisoManual.style.display = "block";
 
-        // Activar intervalo si estaba parado
+        // Activar intervalo si no estaba ya
         if (!intervaloSolicitudes) {
             cargarSolicitudes();
             intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
         }
     } else {
         boton.textContent = "Ver también fuera de horario";
-        avisoManual.style.display = "none";    // Ocultar aviso rojo
-        avisoHorario.style.display = "block";  // Mostrar aviso amarillo (si estamos fuera de horario)
+        avisoManual.style.display = "none";
+        avisoHorario.style.display = "block";
 
         if (intervaloSolicitudes) {
             clearInterval(intervaloSolicitudes);
             intervaloSolicitudes = null;
         }
-        cargarSolicitudes();  // Re-cargar para aplicar el filtro
     }
+
+    // 🔄 Vuelve a cargar todas las solicitudes según el nuevo estado
+    cargarSolicitudes();
 }
 
 function verDetalles(p) {

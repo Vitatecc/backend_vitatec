@@ -10,13 +10,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const ahora = new Date();
     const hora = ahora.getHours();
-    const dia = ahora.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+    const dia = ahora.getDay();
 
     const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
 
     if (!dentroHorario) {
         document.getElementById("avisoHorario").style.display = "block";
-        // No activamos intervalo aquí
     } else {
         cargarSolicitudes();
         intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
@@ -51,17 +50,12 @@ function cargarSolicitudes() {
             const cuerpo = document.getElementById("solicitudesBody");
             cuerpo.innerHTML = "";
 
+            let algunaVisible = false;
+
             if (!data.archivos || !data.archivos.length) {
-                const fila = document.createElement("tr");
-                const celda = document.createElement("td");
-                celda.colSpan = 4;
-                celda.textContent = "No hay solicitudes pendientes.";
-                fila.appendChild(celda);
-                cuerpo.appendChild(fila);
+                mostrarAvisos(false);
                 return;
             }
-
-            let algunaVisible = false;
 
             for (const archivo of data.archivos) {
                 try {
@@ -69,92 +63,132 @@ function cargarSolicitudes() {
                     const p = await response.json();
 
                     const fila = document.createElement("tr");
+                    const visible = p.visible_en_panel;
+                    fila.setAttribute("data-visible", visible ? "true" : "false");
 
-                    // Marcar si se debe mostrar en horario laboral
-                    fila.setAttribute("data-visible", p.visible_en_panel ? "true" : "false");
-
-                    // Si está fuera de horario y no se ha activado "ver también fuera de horario", ocultar
-                    if (!p.visible_en_panel && !mostrarFueraHorario) {
+                    if (!visible && !mostrarFueraHorario) {
                         fila.style.display = "none";
                     }
 
-                    if (p.visible_en_panel) {
+                    if (visible || mostrarFueraHorario) {
+                        const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
+
+                        if (dniDuplicado) {
+                            fila.classList.add("fila-duplicada");
+                            fila.title = "⚠️ El DNI ya está registrado en pacientes.";
+                        }
+
+                        fila.innerHTML = `
+                            <td>${dniDuplicado ? "⚠️ " : ""}${p.nombre} ${p.apellidos}</td>
+                            <td>${p.movil}</td>
+                            <td>${p.email}</td>
+                            <td>
+                                <button onclick='verDetalles(${JSON.stringify(p).replace(/"/g, "&quot;")})'>Ver</button>
+                                <button onclick="aprobarPaciente('${p.dni}')">Aprobar</button>
+                                <button onclick="rechazarPaciente('${p.dni}')">Rechazar</button>
+                            </td>
+                        `;
+                        cuerpo.appendChild(fila);
+                    }
+
+                    if (visible) {
                         algunaVisible = true;
                     }
-
-                    const dniDuplicado = dnisRegistrados.includes(p.dni.toLowerCase());
-
-                    if (dniDuplicado) {
-                        fila.classList.add("fila-duplicada");
-                        fila.title = "⚠️ El DNI ya está registrado en pacientes.";
-                    }
-
-                    fila.innerHTML = `
-                        <td>${dniDuplicado ? "⚠️ " : ""}${p.nombre} ${p.apellidos}</td>
-                        <td>${p.movil}</td>
-                        <td>${p.email}</td>
-                        <td>
-                            <button onclick='verDetalles(${JSON.stringify(p).replace(/"/g, "&quot;")})'>Ver</button>
-                            <button onclick="aprobarPaciente('${p.dni}')">Aprobar</button>
-                            <button onclick="rechazarPaciente('${p.dni}')">Rechazar</button>
-                        </td>
-                    `;
-                    cuerpo.appendChild(fila);
                 } catch (err) {
                     console.error("Error leyendo solicitud:", archivo, err);
                 }
             }
-
-            // Mostrar aviso solo si no hay solicitudes visibles
-            const aviso = document.getElementById("avisoHorario");
-            const recordatorio = document.getElementById("avisoRecordatorio");
-            
-            if (mostrarFueraHorario) {
-                if (aviso) aviso.style.display = "none";
-                if (recordatorio) recordatorio.style.display = "block";
-            } else {
-                if (recordatorio) recordatorio.style.display = "none";
-                if (!algunaVisible && aviso) {
-                    aviso.style.display = "block";
-                } else if (algunaVisible && aviso) {
-                    aviso.style.display = "none";
-                }
-            }
+            mostrarAvisos(algunaVisible);
         });
 }
 
+function mostrarAvisos(algunaVisible) {
+    const aviso = document.getElementById("avisoHorario");
+    const recordatorio = document.getElementById("avisoRecordatorio");
 
-function aprobarPaciente(dni) {
-  if (dnisRegistrados.includes(dni.toLowerCase())) {
-    alert("⚠️ Este DNI ya existe en la base de datos. No se puede crear el paciente duplicado.");
-    return;
-  }
-
-  getApiKey().then(apiKey => {
-    fetch(`/webhook/aprobar/${dni}`, {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "success") {
-          alert("Paciente aprobado correctamente.");
-          cargarSolicitudes();
-          cargarAuditoria();
-          cargarLogs();
-        } else {
-          alert("Error: " + data.message);
-        }
-      })
-      .catch(err => {
-        alert("Error al aprobar paciente: " + err);
-      });
-  });
+    if (mostrarFueraHorario) {
+        if (aviso) aviso.style.display = "none";
+        if (recordatorio) recordatorio.style.display = "block";
+    } else {
+        if (recordatorio) recordatorio.style.display = "none";
+        if (aviso) aviso.style.display = algunaVisible ? "none" : "block";
+    }
 }
 
+function toggleFueraDeHorario() {
+    mostrarFueraHorario = !mostrarFueraHorario;
 
+    const filas = document.querySelectorAll("#solicitudesBody tr");
+    filas.forEach(fila => {
+        const visible = fila.getAttribute("data-visible") === "true";
+        if (!visible) {
+            fila.style.display = mostrarFueraHorario ? "table-row" : "none";
+        }
+    });
+
+    const boton = document.querySelector("#avisoHorario button");
+    const avisoHorario = document.getElementById("avisoHorario");
+    const avisoRecordatorio = document.getElementById("avisoRecordatorio");
+
+    if (mostrarFueraHorario) {
+        boton.textContent = "Ocultar fuera de horario";
+        avisoHorario.style.display = "none";
+        avisoRecordatorio.style.display = "block";
+
+        if (!intervaloSolicitudes) {
+            cargarSolicitudes();
+            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        }
+    } else {
+        boton.textContent = "Ver también fuera de horario";
+        avisoRecordatorio.style.display = "none";
+
+        const ahora = new Date();
+        const hora = ahora.getHours();
+        const dia = ahora.getDay();
+        const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+
+        if (!dentroHorario) {
+            avisoHorario.style.display = "block";
+        }
+
+        if (intervaloSolicitudes) {
+            clearInterval(intervaloSolicitudes);
+            intervaloSolicitudes = null;
+        }
+
+        cargarSolicitudes();
+    }
+}
+function aprobarPaciente(dni) {
+    if (dnisRegistrados.includes(dni.toLowerCase())) {
+        alert("⚠️ Este DNI ya existe en la base de datos. No se puede crear el paciente duplicado.");
+        return;
+    }
+
+    getApiKey().then(apiKey => {
+        fetch(`/webhook/aprobar/${dni}`, {
+            method: "POST",
+            headers: {
+                "x-api-key": apiKey
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("Paciente aprobado correctamente.");
+                cargarSolicitudes();
+                cargarAuditoria();
+                cargarLogs();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Error al aprobar paciente: " + err);
+        });
+    });
+}
 
 function rechazarPaciente(dni) {
     getApiKey().then(apiKey => {
@@ -174,6 +208,24 @@ function rechazarPaciente(dni) {
     });
 }
 
+function verDetalles(p) {
+    const existe = dnisRegistrados.includes(p.dni.toLowerCase());
+    const contenedor = document.getElementById("contenidoDetalles");
+    contenedor.innerHTML = `
+        <p><strong>Nombre:</strong> ${p.nombre}</p>
+        <p><strong>Apellidos:</strong> ${p.apellidos}</p>
+        <p><strong>DNI:</strong> <span style="color:${existe ? 'red' : 'black'}">${p.dni}</span></p>
+        <p><strong>Teléfono:</strong> ${p.movil}</p>
+        <p><strong>Email:</strong> ${p.email}</p>
+        <p><strong>Fecha de nacimiento:</strong> ${p.fecha_nacimiento || "-"}</p>
+        <p><strong>Motivo:</strong> ${p.motivo || "-"}</p>
+    `;
+    document.getElementById("modalDetalles").style.display = "flex";
+}
+
+function cerrarModal() {
+    document.getElementById("modalDetalles").style.display = "none";
+}
 function cargarLogs(mostrarTodos = false) {
     fetch("/webhook/logs")
         .then(response => response.json())
@@ -224,16 +276,14 @@ function cargarAuditoria() {
             contenedor.innerHTML = "";
 
             data.forEach(item => {
-                // Ignorar entradas mal formateadas
                 if (!item.accion || !item.usuario || !item.dni) return;
-            
                 const fecha = new Date(item.timestamp).toLocaleString("es-ES");
                 const clase = item.accion === "Rechazada" ? "registro-rechazado" : "registro-aprobado";
-            
+
                 const div = document.createElement("div");
                 div.className = `registro ${clase}`;
                 div.innerHTML = `
-                    <strong>${item.usuario}</strong> – 
+                    <strong>${item.usuario}</strong> –
                     <span>${item.accion}</span> (${item.dni})<br>
                     <small>${fecha}</small>
                 `;
@@ -241,108 +291,6 @@ function cargarAuditoria() {
                 contenedor.appendChild(div);
             });
         });
-}
-
-
-function cargarEstadisticas() {
-    const tipo = document.querySelector('input[name="tipoEstadistica"]:checked').value;
-    const url = tipo === "mes" ? '/webhook/stats-google' : '/webhook/stats-google?modo=dia';
-    
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            const labels = data.labels || Object.keys(data);
-            const values = data.values || labels.map(l => data[l]);
-
-            const ctx = document.getElementById("myChart").getContext("2d");
-            if (window.miGrafico) {
-                window.miGrafico.destroy();
-            }
-
-            window.miGrafico = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: tipo === "mes" ? "Citas por mes" : "Citas por día",
-                        data: values,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            const hoy = new Date().toISOString().split("T")[0];
-            const totalHoy = tipo === "dia" ? (data[hoy] || 0) : 0;
-            document.getElementById("citasHoy").textContent = totalHoy;
-        });
-}
-
-function toggleFueraDeHorario() {
-    mostrarFueraHorario = !mostrarFueraHorario;
-
-    const filas = document.querySelectorAll("#solicitudesBody tr");
-    filas.forEach(fila => {
-        const visible = fila.getAttribute("data-visible") === "true";
-        if (!visible) {
-            fila.style.display = mostrarFueraHorario ? "table-row" : "none";
-        }
-    });
-
-    const boton = document.querySelector("#avisoHorario button");
-    const avisoHorario = document.getElementById("avisoHorario");
-    const avisoManual = document.getElementById("avisoManual");
-
-    if (mostrarFueraHorario) {
-        boton.textContent = "Ocultar fuera de horario";
-        avisoHorario.style.display = "none";   // Ocultar aviso amarillo
-        avisoManual.style.display = "block";   // Mostrar aviso rojo
-
-        // Activar intervalo si estaba parado
-        if (!intervaloSolicitudes) {
-            cargarSolicitudes();
-            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
-        }
-    } else {
-        boton.textContent = "Ver también fuera de horario";
-        avisoManual.style.display = "none";    // Ocultar aviso rojo
-        avisoHorario.style.display = "block";  // Mostrar aviso amarillo (si estamos fuera de horario)
-
-        if (intervaloSolicitudes) {
-            clearInterval(intervaloSolicitudes);
-            intervaloSolicitudes = null;
-        }
-        cargarSolicitudes();  // Re-cargar para aplicar el filtro
-    }
-}
-
-
-
-function verDetalles(p) {
-    const existe = dnisRegistrados.includes(p.dni.toLowerCase());
-
-    const contenedor = document.getElementById("contenidoDetalles");
-    contenedor.innerHTML = `
-        <p><strong>Nombre:</strong> ${p.nombre}</p>
-        <p><strong>Apellidos:</strong> ${p.apellidos}</p>
-        <p><strong>DNI:</strong> <span style="color:${existe ? 'red' : 'black'}">${p.dni}</span></p>
-        <p><strong>Teléfono:</strong> ${p.movil}</p>
-        <p><strong>Email:</strong> ${p.email}</p>
-        <p><strong>Fecha de nacimiento:</strong> ${p.fecha_nacimiento || "-"}</p>
-        <p><strong>Motivo:</strong> ${p.motivo || "-"}</p>
-    `;
-    document.getElementById("modalDetalles").style.display = "flex";
-}
-
-function cerrarModal() {
-    document.getElementById("modalDetalles").style.display = "none";
 }
 
 function verAuditoriaDetalles(item) {
@@ -356,7 +304,7 @@ function verAuditoriaDetalles(item) {
     document.getElementById("modalAuditoria").style.display = "flex";
 }
 
-
 function cerrarAuditoriaModal() {
     document.getElementById("modalAuditoria").style.display = "none";
 }
+

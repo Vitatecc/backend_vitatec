@@ -1632,10 +1632,10 @@ def obtener_estadisticas_google_sheets(modo="mes"):
         fechas = []
 
         for fila in datos:
-            fecha_str = fila.get("Fecha de alta") or fila.get("Fecha")
-            if fecha_str:
+            fecha_str = str(fila.get("Fecha de alta") or "").strip()
+            if fecha_str and fecha_str.lower() not in ["", "nan", "null", "none"]:
                 try:
-                    fecha = pd.to_datetime(fecha_str, errors='coerce')
+                    fecha = pd.to_datetime(fecha_str, errors='coerce', format='%Y-%m-%d')
                     if pd.notna(fecha):
                         fechas.append(fecha)
                 except:

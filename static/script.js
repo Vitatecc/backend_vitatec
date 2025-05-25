@@ -49,6 +49,11 @@ function getApiKey() {
 }
 
 function cargarSolicitudes(fuerzaMostrar = false) {
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const dia = ahora.getDay();
+    const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+
     fetch('/api/ver-solicitudes')
         .then(res => res.json())
         .then(async data => {
@@ -70,8 +75,8 @@ function cargarSolicitudes(fuerzaMostrar = false) {
                     const solicitud = await response.json();
 
                     const fila = document.createElement("tr");
-                    
-                    if (fuerzaMostrar) {
+
+                    if (dentroHorario || fuerzaMostrar) {
                         const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
 
                         fila.innerHTML = `
@@ -91,10 +96,12 @@ function cargarSolicitudes(fuerzaMostrar = false) {
 
                         cuerpo.appendChild(fila);
                     }
+
                 } catch (err) {
                     console.error("Error procesando solicitud:", err);
                 }
             }
+
             document.querySelectorAll(".btn-ver").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const solicitud = JSON.parse(decodeURIComponent(btn.dataset.solicitud));
@@ -104,6 +111,7 @@ function cargarSolicitudes(fuerzaMostrar = false) {
 
         });
 }
+
 
 function mostrarSolicitudesFueraHorario() {
     document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";

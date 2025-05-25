@@ -406,21 +406,6 @@ def formulario_alta():
     auditoria.append(evento)
     with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
         json.dump(auditoria, f, indent=2, ensure_ascii=False)
-
-    if not dentro_de_horario:
-        try:
-            ruta_script = os.path.join(BASE_DIR, "Crear_usuario.py")
-            resultado = subprocess.run(
-                [sys.executable, ruta_script],
-                input=json.dumps(datos),
-                text=True,
-                capture_output=True
-            )
-            if resultado.returncode != 0:
-                raise Exception(resultado.stderr)
-        except Exception as e:
-            return render_template("formulario.html", datos=datos, errores={"error_general": f"Error interno: {e}"})
-
     return redirect(url_for("formulario_alta", mensaje="ok"))
 
 

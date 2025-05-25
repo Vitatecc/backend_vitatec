@@ -425,43 +425,51 @@ def formulario_alta():
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])
 @require_api_key
 def aprobar_solicitud(dni):
-    archivo_individual = RUTA_SOLICITUDES / f"{dni.lower()}.json"
-    if not archivo_individual.exists():
-        return jsonify({"status": "error", "message": "Solicitud no encontrada"}), 404
-
-    # Leer los datos del paciente
-    with open(archivo_individual, "r", encoding="utf-8") as f:
-        aprobado = json.load(f)
-
-    # Eliminar la solicitud original
-    archivo_individual.unlink()
-
-    # Crear paciente en Esiclinic
-    esiclinic = EsiclinicManager(headless=True)
     try:
-        if esiclinic.login():
-            esiclinic.crear_paciente(aprobado)
-    finally:
-        esiclinic.cerrar()
+        archivo_individual = RUTA_SOLICITUDES / f"{dni.lower()}.json"
+        if not archivo_individual.exists():
+            return jsonify({"status": "error", "message": "Solicitud no encontrada"}), 404
 
-    # ✅ Registrar evento en audit.json
-    evento = {
-        "dni": aprobado["dni"],
-        "accion": "Aprobada",
-        "usuario": session.get("usuario", "Sistema"),
-        "timestamp": datetime.now().isoformat()
-    }
-    try:
-        with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
-            auditoria = json.load(f)
-    except:
-        auditoria = []
+        # Leer los datos del paciente
+        with open(archivo_individual, "r", encoding="utf-8") as f:
+            aprobado = json.load(f)
 
-    auditoria.append(evento)
-    with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
-        json.dump(auditoria, f, indent=2, ensure_ascii=False)
+        # Eliminar la solicitud original
+        archivo_individual.unlink()
 
-    return jsonify({"status": "success", "message": "Paciente aprobado y guardado"})
+        # Crear paciente en Esiclinic
+        from Crear_usuario import EsiclinicManager  # Asegúrate que exista
+        esiclinic = EsiclinicManager(headless=True)
+
+        try:
+            if esiclinic.login():
+                esiclinic.crear_paciente(aprobado)
+        finally:
+            esiclinic.cerrar()
+
+        # Registrar evento en audit.json
+        evento = {
+            "dni": aprobado["dni"],
+            "accion": "Aprobada",
+            "usuario": session.get("usuario", "Sistema"),
+            "timestamp": datetime.now().isoformat()
+        }
+
+        try:
+            with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
+                auditoria = json.load(f)
+        except:
+            auditoria = []
+
+        auditoria.append(evento)
+        with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
+            json.dump(auditoria, f, indent=2, ensure_ascii=False)
+
+        return jsonify({"status": "success", "message": "Paciente aprobado y guardado"})
+
+    except Exception as e:
+        # Muy importante: responder SIEMPRE en JSON aunque haya error
+        return jsonify({"status": "error", "message": f"Excepción interna: {str(e)}"}), 500
 
 
 @app.route('/webhook/rechazar/<dni>', methods=["POST"])

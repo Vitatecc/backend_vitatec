@@ -6,26 +6,22 @@ let dnisRegistrados = [];
 document.addEventListener("DOMContentLoaded", function () {
     const ahora = new Date();
     const hora = ahora.getHours();
-    const dia = ahora.getDay(); // 0=domingo, 6=sábado
+    const dia = ahora.getDay(); // 0 = domingo, 6 = sábado
+
     const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
 
     cargarLogs();
     cargarMensajes();
-    cargarAuditoria();
+    cargarAuditoria(); // ✅ Siempre cargar al principio
     cargarEstadisticas();
 
     if (dentroHorario) {
-        document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
-        document.getElementById("avisoHorario").style.display = "none";
-        cargarSolicitudes();
-        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
-        setInterval(cargarAuditoria, 10000);
+        mostrarModoAutomatico();
     } else {
-        document.getElementById("avisoHorario").style.display = "block";
-        document.getElementById("solicitudesBody").innerHTML = "";
-        document.querySelector("#tablaSolicitudes thead").style.display = "none";
+        mostrarModoFueraHorario();
     }
 
+    // Estadísticas por tipo (mes o día)
     document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
         radio.addEventListener('change', cargarEstadisticas);
     });
@@ -120,12 +116,46 @@ function cargarSolicitudes() {
 function mostrarSolicitudesFueraHorario() {
     document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
     document.getElementById("avisoHorario").style.display = "none";
+    document.getElementById("alertaFueraHorario").style.display = "block";
 
     cargarSolicitudes();
+
     if (!intervaloSolicitudes) {
         intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
     }
+
+    // Marca que estamos en modo manual
+    localStorage.setItem("modoFueraHorario", "true");
 }
+
+function ocultarFueraHorario() {
+    document.getElementById("alertaFueraHorario").style.display = "none";
+
+    // Simulamos "volver al modo automático" (detecta si estamos en horario)
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const dia = ahora.getDay();
+    const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+
+    if (dentroHorario) {
+        if (!intervaloSolicitudes) {
+            cargarSolicitudes();
+            intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        }
+        document.getElementById("avisoHorario").style.display = "none";
+    } else {
+        clearInterval(intervaloSolicitudes);
+        intervaloSolicitudes = null;
+        document.getElementById("avisoHorario").style.display = "block";
+        document.querySelector("#tablaSolicitudes thead").style.display = "none";
+        document.getElementById("solicitudesBody").innerHTML = "";
+    }
+
+    // Eliminar el modo manual
+    localStorage.removeItem("modoFueraHorario");
+}
+
+
 
 
 function aprobarPaciente(dni) {

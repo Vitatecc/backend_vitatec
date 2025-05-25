@@ -92,7 +92,7 @@ RUTA_MESSAGES = DATA_DIR / "messages.json"
 RUTA_LOGS = BASE_DIR / "logs.json"
 RUTA_SOLICITUDES = DATA_DIR / "solicitudes"
 BASE_URL = "https://esiclinic.com/"
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("ADMIN_API_KEY")
 
 # Crear directorios si no existen
 DATA_DIR.mkdir(exist_ok=True)

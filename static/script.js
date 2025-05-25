@@ -146,15 +146,17 @@ function mostrarSolicitudesFueraHorario() {
     document.getElementById("avisoHorario").style.display = "none";
     document.getElementById("alertaFueraHorario").style.display = "block";
 
+    ultimasSolicitudesJSON = "";  // 🔁 Fuerza recarga total
+
     cargarSolicitudes();
 
     if (!intervaloSolicitudes) {
         intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
     }
 
-    // Marca que estamos en modo manual
     localStorage.setItem("modoFueraHorario", "true");
 }
+
 
 function ocultarFueraHorario() {
     document.getElementById("alertaFueraHorario").style.display = "none";

@@ -189,34 +189,53 @@ function ocultarFueraHorario() {
 
 
 function aprobarPaciente(dni) {
-  if (dnisRegistrados.includes(dni.toLowerCase())) {
-    alert("⚠️ Este DNI ya existe en la base de datos. No se puede crear el paciente duplicado.");
-    return;
-  }
+    if (dnisRegistrados.includes(dni.toLowerCase())) {
+        alert("⚠️ Este DNI ya existe en la base de datos. No se puede crear el paciente duplicado.");
+        return;
+    }
 
-  getApiKey().then(apiKey => {
-    fetch(`/webhook/aprobar/${dni}`, {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "success") {
-          alert("Paciente aprobado correctamente.");
-          cargarSolicitudes();
-          cargarAuditoria();
-          cargarLogs();
-        } else {
-          alert("Error: " + data.message);
-        }
-      })
-      .catch(err => {
-        alert("Error al aprobar paciente: " + err);
-      });
-  });
+    getApiKey().then(apiKey => {
+        fetch(`/webhook/aprobar/${dni}`, {
+            method: "POST",
+            headers: {
+                "x-api-key": apiKey
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("✅ Paciente aprobado correctamente. Ahora creando en ESIClinic...");
+
+                // SOLO EL ADMINISTRADOR puede hacer esto:
+                const adminKey = "TU_ADMIN_API_KEY";  // ← remplázalo con la real en entorno seguro
+                fetch(`/webhook/crear-paciente/${dni}`, {
+                    method: "POST",
+                    headers: {
+                        "x-api-key": adminKey
+                    }
+                })
+                .then(res => res.json())
+                .then(creacion => {
+                    if (creacion.status === "success") {
+                        console.log("Usuario creado correctamente:", creacion.output);
+                    } else {
+                        console.error("Error al crear usuario:", creacion.output);
+                    }
+                });
+
+                cargarSolicitudes();
+                cargarAuditoria();
+                cargarLogs();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Error al aprobar paciente: " + err);
+        });
+    });
 }
+
 
 function rechazarPaciente(dni) {
     getApiKey().then(apiKey => {

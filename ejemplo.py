@@ -26,6 +26,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import base64
 from io import BytesIO
+import requests
  
 ### IMPORTS DE LIBRERIAS ###
  
@@ -431,22 +432,9 @@ def aprobar_solicitud(dni):
         if not archivo_individual.exists():
             return jsonify({"status": "error", "message": "Solicitud no encontrada"}), 404
 
-        # Leer los datos del paciente
+        # Leer datos del paciente
         with open(archivo_individual, "r", encoding="utf-8") as f:
             aprobado = json.load(f)
-
-        # Eliminar la solicitud original
-        archivo_individual.unlink()
-
-        # Crear paciente en Esiclinic
-        from Crear_usuario import EsiclinicManager  # Asegúrate que exista
-        esiclinic = EsiclinicManager(headless=True)
-
-        try:
-            if esiclinic.login():
-                esiclinic.crear_paciente(aprobado)
-        finally:
-            esiclinic.cerrar()
 
         # Registrar evento en audit.json
         evento = {
@@ -466,10 +454,19 @@ def aprobar_solicitud(dni):
         with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
             json.dump(auditoria, f, indent=2, ensure_ascii=False)
 
-        return jsonify({"status": "success", "message": "Paciente aprobado y guardado"})
+        # Enviar a Make
+        webhook_url = "https://hook.eu2.make.com/dct31mtpwqb5ibzfm2f29wvzciomqivv"  # tu webhook
+        response = requests.post(webhook_url, json=aprobado)
+
+        if response.status_code != 200:
+            return jsonify({"status": "error", "message": f"Make respondió con {response.status_code}: {response.text}"}), 500
+
+        # Eliminar la solicitud original SOLO si todo fue bien
+        archivo_individual.unlink()
+
+        return jsonify({"status": "success", "message": "Solicitud aprobada y enviada a Make"})
 
     except Exception as e:
-        # Muy importante: responder SIEMPRE en JSON aunque haya error
         return jsonify({"status": "error", "message": f"Excepción interna: {str(e)}"}), 500
 
 

@@ -118,6 +118,27 @@ def login_required(f):
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return decorated_function
+@app.route("/api/pacientes/dnis")
+@login_required
+def obtener_dnis_pacientes():
+    try:
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/drive.readonly'
+        ]
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("pacientes.xlsx").sheet1
+        datos = sheet.get_all_records()
+
+        dnis = [fila["CIF"] for fila in datos if "CIF" in fila and fila["CIF"]]
+        return jsonify(dnis)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # ==============================================
 # CLASE PARA MANEJO DE ESICLINIC

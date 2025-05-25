@@ -1,5 +1,6 @@
 let intervaloSolicitudes = null;
 let mostrarFueraDeHorarioManual = false;
+let ultimasSolicitudesJSON = "";
 let dnisRegistrados = [];
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -53,6 +54,13 @@ function cargarSolicitudes() {
     fetch('/api/ver-solicitudes')
         .then(res => res.json())
         .then(async data => {
+            const nuevoJSON = JSON.stringify(data.archivos || []);
+            if (nuevoJSON === ultimasSolicitudesJSON) {
+                return; // ✅ No hay cambios, no hacemos nada
+            }
+
+            ultimasSolicitudesJSON = nuevoJSON;
+
             const cuerpo = document.getElementById("solicitudesBody");
             cuerpo.innerHTML = "";
 
@@ -63,13 +71,16 @@ function cargarSolicitudes() {
 
             dnisRegistrados = await fetch('/api/pacientes/dnis')
                 .then(res => res.json())
-                .then(data => data.filter(d => typeof d === "string").map(d => d.toLowerCase()));
+                .then(data => data
+                    .filter(d => typeof d === "string")
+                    .map(d => d.toLowerCase())
+                );
 
             for (const archivo of data.archivos) {
                 try {
                     const response = await fetch(`/webhook/solicitud/${archivo}`);
                     const solicitud = await response.json();
-                    console.log("🧩 Datos de solicitud recibidos:", solicitud);  // ← AÑADE ESTO
+                    console.log("🧩 Datos de solicitud recibidos:", solicitud);
 
                     const fila = document.createElement("tr");
                     const dniPaciente = (solicitud.dni || "").toLowerCase();

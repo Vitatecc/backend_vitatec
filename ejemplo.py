@@ -146,7 +146,7 @@ def crear_paciente(dni):
     if api_key != os.getenv("ADMIN_API_KEY"):  # Proteger el acceso
         return jsonify({"status": "unauthorized"}), 401
 
-    ruta_json = f"/data/solicitudes/{dni}.json"  # Asegúrate que esté en Render
+    ruta_json = os.path.join("data", "solicitudes", f"{dni}.json")
 
     if not os.path.exists(ruta_json):
         return jsonify({"status": "error", "message": "Archivo de solicitud no encontrado."}), 404

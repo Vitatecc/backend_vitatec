@@ -208,25 +208,9 @@ function aprobarPaciente(dni) {
         })
         .then(data => {
             if (data.status === "success") {
-                alert("✅ Paciente aprobado correctamente. Ahora creando en ESIClinic...");
+                alert("✅ Paciente aprobado correctamente. El proceso continuará en tu sistema local mediante Make y Desktop Agent.");
 
-                // SOLO EL ADMINISTRADOR puede hacer esto:
-                const adminKey = "clave_vitatec_super_segura";
-                fetch(`/webhook/crear-paciente/${dni}`, {
-                    method: "POST",
-                    headers: {
-                        "x-api-key": adminKey
-                    }
-                })
-                .then(res => res.json())
-                .then(creacion => {
-                    if (creacion.status === "success") {
-                        console.log("Usuario creado correctamente:", creacion.output);
-                    } else {
-                        console.error("Error al crear usuario:", creacion.output);
-                    }
-                });
-
+                // No llamamos a /webhook/crear-paciente porque Make ya ejecuta el proceso en local
                 cargarSolicitudes();
                 cargarAuditoria();
                 cargarLogs();

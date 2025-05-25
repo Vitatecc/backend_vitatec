@@ -310,18 +310,19 @@ function cargarAuditoria() {
             const contenedor = document.getElementById("auditList");
             contenedor.innerHTML = "";
 
-            data.forEach(item => {
+            const lista = Array.isArray(data) ? data : (data.audit || []);
+            lista.forEach(item => {
                 if (!item.accion || !item.usuario || !item.dni) return;
 
                 const fecha = new Date(item.timestamp).toLocaleString("es-ES");
-                
+
                 let clase = "registro";
                 if (item.accion === "Rechazada") {
                     clase += " registro-rechazado";
                 } else if (item.accion === "Aprobada") {
                     clase += " registro-aprobado";
                 } else if (item.accion === "Solicitud recibida") {
-                    clase += " registro-pendiente";  // 🎨 NUEVA CLASE
+                    clase += " registro-pendiente";
                 }
 
                 const div = document.createElement("div");

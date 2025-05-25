@@ -8,28 +8,27 @@ document.addEventListener("DOMContentLoaded", function () {
     const dia = ahora.getDay(); // 0=domingo, 6=sábado
     const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
 
-    // Cargar secciones comunes
     cargarLogs();
     cargarMensajes();
     cargarAuditoria();
     cargarEstadisticas();
 
-    // Mostrar solicitudes solo si estamos dentro del horario laboral
     if (dentroHorario) {
         document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
+        document.getElementById("avisoHorario").style.display = "none";
         cargarSolicitudes();
-        setInterval(cargarSolicitudes, 10000);
+        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
     } else {
         document.getElementById("avisoHorario").style.display = "block";
-        document.getElementById("solicitudesBody").innerHTML = ""; // Vaciar tabla
+        document.getElementById("solicitudesBody").innerHTML = "";
         document.querySelector("#tablaSolicitudes thead").style.display = "none";
     }
 
-    // Estadísticas por tipo
     document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
         radio.addEventListener('change', cargarEstadisticas);
     });
 });
+
 
 fetch("/api/pacientes/dnis")
     .then(res => res.json())
@@ -48,12 +47,7 @@ function getApiKey() {
     .then(data => data.api_key);
 }
 
-function cargarSolicitudes(fuerzaMostrar = false) {
-    const ahora = new Date();
-    const hora = ahora.getHours();
-    const dia = ahora.getDay();
-    const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-
+function cargarSolicitudes() {
     fetch('/api/ver-solicitudes')
         .then(res => res.json())
         .then(async data => {
@@ -75,28 +69,24 @@ function cargarSolicitudes(fuerzaMostrar = false) {
                     const solicitud = await response.json();
 
                     const fila = document.createElement("tr");
+                    const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
 
-                    if (dentroHorario || fuerzaMostrar) {
-                        const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
+                    fila.innerHTML = `
+                        <td>${dniDuplicado ? "⚠️ " : ""}${solicitud.nombre} ${solicitud.apellidos}</td>
+                        <td>${solicitud.movil}</td>
+                        <td>${solicitud.email}</td>
+                        <td>
+                            <button class="btn-ver" data-solicitud='${encodeURIComponent(JSON.stringify(solicitud))}'>Ver</button>
+                            <button onclick="aprobarPaciente('${solicitud.dni}')">Aprobar</button>
+                            <button onclick="rechazarPaciente('${solicitud.dni}')">Rechazar</button>
+                        </td>
+                    `;
 
-                        fila.innerHTML = `
-                            <td>${dniDuplicado ? "⚠️ " : ""}${solicitud.nombre} ${solicitud.apellidos}</td>
-                            <td>${solicitud.movil}</td>
-                            <td>${solicitud.email}</td>
-                            <td>
-                                <button class="btn-ver" data-solicitud='${encodeURIComponent(JSON.stringify(solicitud))}'>Ver</button>
-                                <button onclick="aprobarPaciente('${solicitud.dni}')">Aprobar</button>
-                                <button onclick="rechazarPaciente('${solicitud.dni}')">Rechazar</button>
-                            </td>
-                        `;
-
-                        if (dniDuplicado) {
-                            fila.classList.add("fila-duplicada");
-                        }
-
-                        cuerpo.appendChild(fila);
+                    if (dniDuplicado) {
+                        fila.classList.add("fila-duplicada");
                     }
 
+                    cuerpo.appendChild(fila);
                 } catch (err) {
                     console.error("Error procesando solicitud:", err);
                 }
@@ -108,24 +98,18 @@ function cargarSolicitudes(fuerzaMostrar = false) {
                     verDetalles(solicitud);
                 });
             });
-
         });
 }
-
 
 function mostrarSolicitudesFueraHorario() {
     document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
     document.getElementById("avisoHorario").style.display = "none";
 
-    cargarSolicitudes(true);  // ← forzar visualización
+    cargarSolicitudes();
     if (!intervaloSolicitudes) {
-        intervaloSolicitudes = setInterval(() => {
-            cargarSolicitudes(true);
-        }, 10000);
+        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
     }
 }
-
-
 
 
 function aprobarPaciente(dni) {

@@ -245,6 +245,7 @@ def main():
 
     finally:
         auto.close()
+EsiclinicManager = ESIClinicAutomator
 
 if __name__ == "__main__":
     main()

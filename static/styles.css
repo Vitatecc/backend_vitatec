@@ -6,6 +6,13 @@ body {
     padding: 0;
     color: #333;
 }
+.registro-pendiente {
+    background-color: #ffe680; /* amarillo claro */
+    border-left: 4px solid #f1c40f;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 8px;
+}
 
 header {
     background-color: #222;

@@ -127,8 +127,11 @@
           </tbody>
         </table>
       </div>
-      <div id="avisoHorario" class="bg-yellow-100 text-yellow-800 p-4 rounded-md mb-4" style="display: none;">
-        ⚠️ Actualmente estamos fuera del horario laboral. Las solicitudes se crean automáticamente y no aparecerán aquí.
+      <div id="avisoHorario" class="bg-yellow-100 text-yellow-800 p-4 rounded-md mb-4 flex justify-between items-center" style="display: none;">
+        <span>⚠️ Actualmente estamos fuera del horario laboral. Las solicitudes se crean automáticamente y no aparecerán aquí.</span>
+        <button onclick="mostrarSolicitudesFueraHorario()" class="ml-4 px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">
+          Mostrar
+        </button>
       </div>
 
     </section>

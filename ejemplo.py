@@ -436,23 +436,6 @@ def aprobar_solicitud(dni):
     # Eliminar la solicitud original
     archivo_individual.unlink()
 
-    # Añadir al Excel
-    if os.path.exists(PACIENTES_FILE):
-        df = pd.read_excel(PACIENTES_FILE)
-    else:
-        df = pd.DataFrame(columns=['CIF','Nombre','Apellidos','E-Mail','Telefono2','Fecha_nacimiento'])
-
-    nuevo = {
-        "CIF": aprobado['dni'],
-        "Nombre": aprobado['nombre'],
-        "Apellidos": aprobado['apellidos'],
-        "E-Mail": aprobado['email'],
-        "Telefono2": aprobado['movil'],
-        "Fecha_nacimiento": aprobado.get('fecha_nacimiento', '')
-    }
-    df = pd.concat([df, pd.DataFrame([nuevo])], ignore_index=True)
-    df.to_excel(PACIENTES_FILE, index=False)
-
     # Crear paciente en Esiclinic
     esiclinic = EsiclinicManager(headless=True)
     try:

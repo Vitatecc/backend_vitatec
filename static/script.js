@@ -56,13 +56,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-fetch("/api/pacientes/dnis")
-    .then(res => res.json())
-    .then(data => {
-        dnisRegistrados = data
-            .filter(d => typeof d === "string")  // ✅ Asegura que sea string
-            .map(d => d.toLowerCase());
-    });
+fetch(`/webhook/aprobar/${dni}`, {
+    method: "POST",
+    headers: {
+        "x-api-key": apiKey
+    }
+})
+.then(async res => {
+    const contentType = res.headers.get("content-type");
+    if (!res.ok) {
+        const texto = await res.text();
+        throw new Error(`Error HTTP ${res.status}: ${texto}`);
+    }
+    if (contentType && contentType.includes("application/json")) {
+        return res.json();
+    } else {
+        const texto = await res.text();
+        throw new Error("Respuesta inesperada del servidor: " + texto);
+    }
+})
+.then(data => {
+    if (data.status === "success") {
+        alert("✅ Paciente aprobado correctamente. Ahora creando en ESIClinic...");
+        // aquí sigue tu lógica actual...
+    } else {
+        alert("Error: " + data.message);
+    }
+})
+.catch(err => {
+    alert("❌ Error al aprobar paciente: " + err.message);
+    console.error(err);
+});
 
 function getApiKey() {
     return fetch("/webhook/get-api-key", {

@@ -192,7 +192,20 @@ function aprobarPaciente(dni) {
                 "x-api-key": apiKey
             }
         })
-        .then(res => res.json())
+        .then(async res => {
+            const contentType = res.headers.get("content-type");
+            const texto = await res.text();
+
+            if (!res.ok) {
+                throw new Error(`Error HTTP ${res.status}: ${texto}`);
+            }
+
+            if (contentType && contentType.includes("application/json")) {
+                return JSON.parse(texto);
+            } else {
+                throw new Error("Respuesta inesperada del servidor: " + texto);
+            }
+        })
         .then(data => {
             if (data.status === "success") {
                 alert("✅ Paciente aprobado correctamente. Ahora creando en ESIClinic...");
@@ -222,10 +235,12 @@ function aprobarPaciente(dni) {
             }
         })
         .catch(err => {
-            alert("Error al aprobar paciente: " + err);
+            alert("❌ Error al aprobar paciente: " + err.message);
+            console.error(err);
         });
     });
 }
+
 
 
 function rechazarPaciente(dni) {

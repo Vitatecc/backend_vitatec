@@ -202,7 +202,7 @@ def main():
             'fecha_nacimiento': input("Fecha nacimiento (dd-mm-yyyy): ").strip(),
         }
 
-    auto = ESIClinicAutomator()
+    auto = EsiclinicManager()
     try:
         errores = auto.validate_patient_data(paciente)
         if errores:
@@ -246,7 +246,6 @@ def main():
 
     finally:
         auto.close()
-EsiclinicManager = ESIClinicAutomator
 
 if __name__ == "__main__":
     main()

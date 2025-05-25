@@ -166,8 +166,6 @@ def obtener_solicitud_individual(nombre_archivo):
             return jsonify({"status": "error", "message": "Archivo no encontrado"}), 404
         with open(ruta, "r", encoding="utf-8") as f:
             datos = json.load(f)
-        if "visible_en_panel" not in datos:
-            datos["visible_en_panel"] = False
         return jsonify(datos)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -341,7 +339,7 @@ def formulario_alta():
     os.makedirs(solicitudes_dir, exist_ok=True)
 
     dni = datos["dni"].lower()
-    datos["visible_en_panel"] = dentro_de_horario
+    #datos["visible_en_panel"] = dentro_de_horario
     archivo_solicitud = os.path.join(solicitudes_dir, f"{dni}.json")
 
     with open(archivo_solicitud, "w", encoding="utf-8") as f:

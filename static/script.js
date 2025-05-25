@@ -104,7 +104,11 @@ function mostrarSolicitudesFueraHorario() {
     document.getElementById("avisoHorario").style.display = "none";
 
     cargarSolicitudes(true);  // ← forzar visualización
-    setInterval(() => cargarSolicitudes(true), 10000);
+    if (!intervaloSolicitudes) {
+        intervaloSolicitudes = setInterval(() => {
+            cargarSolicitudes(true);
+        }, 10000);
+    }
 }
 
 

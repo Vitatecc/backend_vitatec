@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const ahora = new Date();
     const hora = ahora.getHours();
     const dia = ahora.getDay(); // 0=domingo, 6=sábado
-    const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+    const dentroHorario = true; // ⚠️ FORZAMOS horario laboral
 
     cargarLogs();
     cargarMensajes();

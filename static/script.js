@@ -48,7 +48,7 @@ function getApiKey() {
     .then(data => data.api_key);
 }
 
-function cargarSolicitudes() {
+function cargarSolicitudes(fuerzaMostrar = false) {
     fetch('/api/ver-solicitudes')
         .then(res => res.json())
         .then(async data => {
@@ -60,7 +60,6 @@ function cargarSolicitudes() {
                 return;
             }
 
-            // Obtener DNIs registrados primero
             dnisRegistrados = await fetch('/api/pacientes/dnis')
                 .then(res => res.json())
                 .then(data => data.map(d => d.toLowerCase()));
@@ -72,11 +71,10 @@ function cargarSolicitudes() {
 
                     const fila = document.createElement("tr");
                     const visible = solicitud.visible_en_panel || false;
-                    
-                    // Mostrar según configuración
-                    if (visible || mostrarFueraDeHorarioManual) {
+
+                    if (visible || fuerzaMostrar) {
                         const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
-                        
+
                         fila.innerHTML = `
                             <td>${dniDuplicado ? "⚠️ " : ""}${solicitud.nombre} ${solicitud.apellidos}</td>
                             <td>${solicitud.movil}</td>
@@ -87,11 +85,11 @@ function cargarSolicitudes() {
                                 <button onclick="rechazarPaciente('${solicitud.dni}')">Rechazar</button>
                             </td>
                         `;
-                        
+
                         if (dniDuplicado) {
                             fila.classList.add("fila-duplicada");
                         }
-                        
+
                         cuerpo.appendChild(fila);
                     }
                 } catch (err) {
@@ -100,13 +98,16 @@ function cargarSolicitudes() {
             }
         });
 }
+
 function mostrarSolicitudesFueraHorario() {
-    mostrarFueraDeHorarioManual = true;
     document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
     document.getElementById("avisoHorario").style.display = "none";
-    cargarSolicitudes();  // Carga solicitudes ignorando el horario
-    setInterval(cargarSolicitudes, 10000);
+
+    cargarSolicitudes(true);  // ← forzar visualización
+    setInterval(() => cargarSolicitudes(true), 10000);
 }
+
+
 
 
 function aprobarPaciente(dni) {

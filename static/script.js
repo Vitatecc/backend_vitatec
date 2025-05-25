@@ -1,28 +1,30 @@
 let intervaloSolicitudes = null;
 let dnisRegistrados = [];
 
-document.addEventListener("DOMContentLoaded", function() {
-    // Inicializar primero el estado
-    mostrarFueraHorario = localStorage.getItem('mostrarFueraHorario') === 'true';
-    actualizarVistaHorario();
+document.addEventListener("DOMContentLoaded", function () {
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const dia = ahora.getDay(); // 0=domingo, 6=sábado
+    const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
 
-    // Luego cargar los datos
+    // Cargar secciones comunes
     cargarLogs();
     cargarMensajes();
     cargarAuditoria();
     cargarEstadisticas();
-    cargarSolicitudes();
 
-    // Configurar intervalos
-    const ahora = new Date();
-    const hora = ahora.getHours();
-    const dia = ahora.getDay();
-    const dentroHorario = (dia >= 1 && dia <= 5) && 
-                         ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-    if (mostrarFueraHorario || dentroHorario) {
-        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+    // Mostrar solicitudes solo si estamos dentro del horario laboral
+    if (dentroHorario) {
+        document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
+        cargarSolicitudes();
+        setInterval(cargarSolicitudes, 10000);
+    } else {
+        document.getElementById("avisoHorario").style.display = "block";
+        document.getElementById("solicitudesBody").innerHTML = ""; // Vaciar tabla
+        document.querySelector("#tablaSolicitudes thead").style.display = "none";
     }
 
+    // Estadísticas por tipo
     document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
         radio.addEventListener('change', cargarEstadisticas);
     });
@@ -43,18 +45,6 @@ function getApiKey() {
     })
     .then(res => res.json())
     .then(data => data.api_key);
-}
-function mostrarAvisos(algunaVisible) {
-    const aviso = document.getElementById("avisoHorario");
-    const recordatorio = document.getElementById("avisoRecordatorio");
-
-    if (mostrarFueraHorario) {
-        if (aviso) aviso.style.display = "none";
-        if (recordatorio) recordatorio.style.display = "block";
-    } else {
-        if (recordatorio) recordatorio.style.display = "none";
-        if (aviso) aviso.style.display = algunaVisible ? "none" : "block";
-    }
 }
 
 function cargarSolicitudes() {
@@ -83,7 +73,7 @@ function cargarSolicitudes() {
                     const visible = solicitud.visible_en_panel || false;
                     
                     // Mostrar según configuración
-                    if (mostrarFueraHorario || visible) {
+                    if (visible) {
                         const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
                         
                         fila.innerHTML = `
@@ -140,8 +130,6 @@ function aprobarPaciente(dni) {
       });
   });
 }
-
-
 
 function rechazarPaciente(dni) {
     getApiKey().then(apiKey => {
@@ -270,57 +258,6 @@ function cargarEstadisticas() {
             const totalHoy = tipo === "dia" ? (data[hoy] || 0) : 0;
             document.getElementById("citasHoy").textContent = totalHoy;
         });
-}
-
-// Modificar la función toggleFueraDeHorario
-function toggleFueraDeHorario() {
-    mostrarFueraHorario = !mostrarFueraHorario;
-    localStorage.setItem('mostrarFueraHorario', mostrarFueraHorario);
-
-    // Enviar preferencia al servidor
-    fetch('/api/toggle-fuera-horario', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ mostrar: mostrarFueraHorario })
-    }).then(response => response.json())
-      .then(data => {
-          actualizarVistaHorario();
-          cargarSolicitudes();
-      });
-}
-
-function actualizarVistaHorario() {
-    const boton = document.querySelector("#avisoHorario button"); // 🔁 MOVER AQUÍ
-    const avisoHorario = document.getElementById("avisoHorario");
-    const avisoRecordatorio = document.getElementById("avisoRecordatorio");
-
-    if (mostrarFueraHorario) {
-        if (boton) boton.textContent = "Ocultar fuera de horario";
-        if (avisoHorario) avisoHorario.style.display = "none";
-        if (avisoRecordatorio) avisoRecordatorio.style.display = "block";
-    } else {
-        if (boton) boton.textContent = "Ver también fuera de horario";
-        if (avisoRecordatorio) avisoRecordatorio.style.display = "none";
-
-        const ahora = new Date();
-        const hora = ahora.getHours();
-        const dia = ahora.getDay();
-        const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-        
-        if (!dentroHorario) {
-            document.getElementById("avisoHorario").style.display = "block";
-            document.getElementById("solicitudesBody").innerHTML = ""; // Oculta tabla
-            document.querySelector("#tablaSolicitudes thead").style.display = "none"; // Oculta cabecera
-        } else {
-            cargarSolicitudes();
-            setInterval(cargarSolicitudes, 10000);
-        }
-        if (avisoHorario) avisoHorario.style.display = dentroHorario ? "none" : "block";
-    }
-
-    if (boton) boton.onclick = toggleFueraDeHorario;
 }
 
 

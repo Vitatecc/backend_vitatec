@@ -67,6 +67,7 @@ function cargarSolicitudes() {
                 try {
                     const response = await fetch(`/webhook/solicitud/${archivo}`);
                     const solicitud = await response.json();
+                    console.log("🧩 Datos de solicitud recibidos:", solicitud);  // ← AÑADE ESTO
 
                     const fila = document.createElement("tr");
                     const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());

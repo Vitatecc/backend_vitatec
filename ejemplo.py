@@ -56,6 +56,7 @@ from datetime import datetime, timedelta, time as dtime  # FECHAS
 ### MANEJO DE ERRORES ###
  
 import locale
+from Crear_usuario import EsiclinicManager
 
 
 locale.setlocale(locale.LC_TIME, "C.UTF-8")

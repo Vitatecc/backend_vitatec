@@ -1,4 +1,5 @@
 let intervaloSolicitudes = null;
+let mostrarFueraDeHorarioManual = false;
 let dnisRegistrados = [];
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -73,7 +74,7 @@ function cargarSolicitudes() {
                     const visible = solicitud.visible_en_panel || false;
                     
                     // Mostrar según configuración
-                    if (visible) {
+                    if (visible || mostrarFueraDeHorarioManual) {
                         const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
                         
                         fila.innerHTML = `
@@ -98,6 +99,13 @@ function cargarSolicitudes() {
                 }
             }
         });
+}
+function mostrarSolicitudesFueraHorario() {
+    mostrarFueraDeHorarioManual = true;
+    document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
+    document.getElementById("avisoHorario").style.display = "none";
+    cargarSolicitudes();  // Carga solicitudes ignorando el horario
+    setInterval(cargarSolicitudes, 10000);
 }
 
 

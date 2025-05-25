@@ -80,7 +80,7 @@ function cargarSolicitudes(fuerzaMostrar = false) {
                             <td>${solicitud.movil}</td>
                             <td>${solicitud.email}</td>
                             <td>
-                                <button onclick='verDetalles(${JSON.stringify(solicitud)})'>Ver</button>
+                                <button class="btn-ver" data-solicitud='${encodeURIComponent(JSON.stringify(solicitud))}'>Ver</button>
                                 <button onclick="aprobarPaciente('${solicitud.dni}')">Aprobar</button>
                                 <button onclick="rechazarPaciente('${solicitud.dni}')">Rechazar</button>
                             </td>
@@ -96,6 +96,13 @@ function cargarSolicitudes(fuerzaMostrar = false) {
                     console.error("Error procesando solicitud:", err);
                 }
             }
+            document.querySelectorAll(".btn-ver").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const solicitud = JSON.parse(decodeURIComponent(btn.dataset.solicitud));
+                    verDetalles(solicitud);
+                });
+            });
+
         });
 }
 

@@ -307,9 +307,16 @@ function actualizarVistaHorario() {
         const ahora = new Date();
         const hora = ahora.getHours();
         const dia = ahora.getDay();
-        const dentroHorario = (dia >= 1 && dia <= 5) && 
-                            ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
-
+        const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+        
+        if (!dentroHorario) {
+            document.getElementById("avisoHorario").style.display = "block";
+            document.getElementById("solicitudesBody").innerHTML = ""; // Oculta tabla
+            document.querySelector("#tablaSolicitudes thead").style.display = "none"; // Oculta cabecera
+        } else {
+            cargarSolicitudes();
+            setInterval(cargarSolicitudes, 10000);
+        }
         if (avisoHorario) avisoHorario.style.display = dentroHorario ? "none" : "block";
     }
 

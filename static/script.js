@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("avisoHorario").style.display = "none";
         cargarSolicitudes();
         intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+        setInterval(cargarAuditoria, 10000);
     } else {
         document.getElementById("avisoHorario").style.display = "block";
         document.getElementById("solicitudesBody").innerHTML = "";
@@ -225,17 +226,24 @@ function cargarAuditoria() {
             contenedor.innerHTML = "";
 
             data.forEach(item => {
-                // Ignorar entradas mal formateadas
                 if (!item.accion || !item.usuario || !item.dni) return;
-            
+
                 const fecha = new Date(item.timestamp).toLocaleString("es-ES");
-                const clase = item.accion === "Rechazada" ? "registro-rechazado" : "registro-aprobado";
-            
+                
+                let clase = "registro";
+                if (item.accion === "Rechazada") {
+                    clase += " registro-rechazado";
+                } else if (item.accion === "Aprobada") {
+                    clase += " registro-aprobado";
+                } else if (item.accion === "Solicitud recibida") {
+                    clase += " registro-pendiente";  // 🎨 NUEVA CLASE
+                }
+
                 const div = document.createElement("div");
-                div.className = `registro ${clase}`;
+                div.className = clase;
                 div.innerHTML = `
-                    <strong>${item.usuario}</strong> – 
-                    <span>${item.accion}</span> (${item.dni})<br>
+                    <strong>${item.dni}</strong> – 
+                    <span>${item.accion}</span> (${item.usuario})<br>
                     <small>${fecha}</small>
                 `;
                 div.onclick = () => verAuditoriaDetalles(item);
@@ -243,6 +251,7 @@ function cargarAuditoria() {
             });
         });
 }
+
 
 
 function cargarEstadisticas() {

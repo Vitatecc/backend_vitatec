@@ -118,6 +118,7 @@ def login_required(f):
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return decorated_function
+    
 @app.route("/api/pacientes/dnis")
 @login_required
 def obtener_dnis_pacientes():
@@ -139,7 +140,28 @@ def obtener_dnis_pacientes():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/webhook/crear-paciente/<dni>', methods=['POST'])
+def crear_paciente(dni):
+    api_key = request.headers.get("x-api-key")
+    if api_key != os.getenv("ADMIN_API_KEY"):  # Proteger el acceso
+        return jsonify({"status": "unauthorized"}), 401
 
+    ruta_json = f"/data/solicitudes/{dni}.json"  # Asegúrate que esté en Render
+
+    if not os.path.exists(ruta_json):
+        return jsonify({"status": "error", "message": "Archivo de solicitud no encontrado."}), 404
+
+    try:
+        result = subprocess.run(
+            ["python", "Crear_usuario.py", ruta_json],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "output": e.stderr}), 500
 # ==============================================
 # CLASE PARA MANEJO DE ESICLINIC
 # ==============================================

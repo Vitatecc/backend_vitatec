@@ -207,7 +207,7 @@ function aprobarPaciente(dni) {
                 alert("✅ Paciente aprobado correctamente. Ahora creando en ESIClinic...");
 
                 // SOLO EL ADMINISTRADOR puede hacer esto:
-                const adminKey = "TU_ADMIN_API_KEY";  // ← remplázalo con la real en entorno seguro
+                const adminKey = "clave_vitatec_super_segura";
                 fetch(`/webhook/crear-paciente/${dni}`, {
                     method: "POST",
                     headers: {

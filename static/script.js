@@ -2,6 +2,26 @@ let intervaloSolicitudes = null;
 let mostrarFueraDeHorarioManual = false;
 let ultimasSolicitudesJSON = "";
 let dnisRegistrados = [];
+function mostrarModoAutomatico() {
+    document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
+    document.getElementById("avisoHorario").style.display = "none";
+    document.getElementById("alertaFueraHorario").style.display = "none";
+    cargarSolicitudes();
+    if (!intervaloSolicitudes) {
+        intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
+    }
+    setInterval(cargarAuditoria, 10000);
+}
+
+function mostrarModoFueraHorario() {
+    document.getElementById("avisoHorario").style.display = "block";
+    document.getElementById("solicitudesBody").innerHTML = "";
+    document.querySelector("#tablaSolicitudes thead").style.display = "none";
+    document.getElementById("alertaFueraHorario").style.display = "none";
+    clearInterval(intervaloSolicitudes);
+    intervaloSolicitudes = null;
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
     const ahora = new Date();
@@ -9,23 +29,31 @@ document.addEventListener("DOMContentLoaded", function () {
     const dia = ahora.getDay(); // 0 = domingo, 6 = sábado
 
     const dentroHorario = (dia >= 1 && dia <= 5) && ((hora >= 10 && hora < 14) || (hora >= 16 && hora < 20));
+    const modoManual = localStorage.getItem("modoFueraHorario") === "true";
 
     cargarLogs();
     cargarMensajes();
-    cargarAuditoria(); // ✅ Siempre cargar al principio
+    cargarAuditoria(); // ✅ Siempre
     cargarEstadisticas();
+    setTimeout(() => {
+        cargarAuditoria();  // 🕒 Ahora garantizado después de pintado
+    }, 200);
 
-    if (dentroHorario) {
-        mostrarModoAutomatico();
+    // 🔄 Modo actual al entrar
+    if (dentroHorario || modoManual) {
+        mostrarModoAutomatico(); // ya activa todo
+        if (modoManual) {
+            document.getElementById("alertaFueraHorario").style.display = "block";
+        }
     } else {
-        mostrarModoFueraHorario();
+        mostrarModoFueraHorario();  // muestra aviso y botón
     }
 
-    // Estadísticas por tipo (mes o día)
     document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
         radio.addEventListener('change', cargarEstadisticas);
     });
 });
+
 
 
 fetch("/api/pacientes/dnis")

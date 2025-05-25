@@ -33,7 +33,9 @@ document.addEventListener("DOMContentLoaded", function () {
 fetch("/api/pacientes/dnis")
     .then(res => res.json())
     .then(data => {
-        dnisRegistrados = data.map(d => d.toLowerCase());
+        dnisRegistrados = data
+            .filter(d => typeof d === "string")  // ✅ Asegura que sea string
+            .map(d => d.toLowerCase());
     });
 
 function getApiKey() {
@@ -61,7 +63,7 @@ function cargarSolicitudes() {
 
             dnisRegistrados = await fetch('/api/pacientes/dnis')
                 .then(res => res.json())
-                .then(data => data.map(d => d.toLowerCase()));
+                .then(data => data.filter(d => typeof d === "string").map(d => d.toLowerCase()));
 
             for (const archivo of data.archivos) {
                 try {
@@ -70,7 +72,8 @@ function cargarSolicitudes() {
                     console.log("🧩 Datos de solicitud recibidos:", solicitud);  // ← AÑADE ESTO
 
                     const fila = document.createElement("tr");
-                    const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());
+                    const dniPaciente = (solicitud.dni || "").toLowerCase();
+                    const dniDuplicado = dnisRegistrados.includes(dniPaciente);
 
                     fila.innerHTML = `
                         <td>${dniDuplicado ? "⚠️ " : ""}${solicitud.nombre} ${solicitud.apellidos}</td>

@@ -70,7 +70,7 @@ function cargarSolicitudes(fuerzaMostrar = false) {
                     const solicitud = await response.json();
 
                     const fila = document.createElement("tr");
-                    const visible = solicitud.visible_en_panel || false;
+                    const visible = fuerzaMostrar ? true : solicitud.visible_en_panel || false;
 
                     if (visible || fuerzaMostrar) {
                         const dniDuplicado = dnisRegistrados.includes(solicitud.dni.toLowerCase());

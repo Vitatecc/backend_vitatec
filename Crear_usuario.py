@@ -62,8 +62,9 @@ def registrar_log_json(usuario, mensaje, tipo="info", detalles=""):
         with open(LOG_JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-class ESIClinicAutomator:
-    def __init__(self):
+class EsiclinicManager:
+    def __init__(self, headless=False):
+        CONFIG['HEADLESS'] = headless
         self.driver = self._setup_driver()
         self.wait = WebDriverWait(self.driver, CONFIG['WAIT_TIMEOUT'])
 

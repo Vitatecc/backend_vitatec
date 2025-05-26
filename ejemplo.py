@@ -372,6 +372,7 @@ def formulario_alta():
 
     # POST → procesamiento de formulario
     datos = request.form.to_dict()
+    modo_manual = datos.get("modo_manual") == "true"
     errores = {}
 
     campos_obligatorios = ['nombre', 'apellidos', 'dni', 'email', 'movil']
@@ -388,12 +389,13 @@ def formulario_alta():
     ahora = datetime.now()
     dia_semana = ahora.weekday()
     hora_actual = ahora.time()
-    dentro_de_horario = (
-        dia_semana < 5 and (
-            dtime(10, 0) <= hora_actual <= dtime(14, 0) or
-            dtime(16, 0) <= hora_actual <= dtime(20, 0)
-        )
-    )
+    dentro_de_horario = False
+    #dentro_de_horario = (
+        #dia_semana < 5 and (
+            #dtime(10, 0) <= hora_actual <= dtime(14, 0) or
+            #dtime(16, 0) <= hora_actual <= dtime(20, 0)
+        #)
+    #)
 
     solicitudes_dir = os.path.join("data", "solicitudes")
     os.makedirs(solicitudes_dir, exist_ok=True)
@@ -422,7 +424,7 @@ def formulario_alta():
         json.dump(auditoria, f, indent=2, ensure_ascii=False)
 
     # Enviar a backend local SOLO si estamos fuera de horario y no están mostrando manualmente
-    if not dentro_de_horario and not panel_en_modo_manual_fuera_horario():
+    if not dentro_de_horario and not modo_manual:
         try:
             response = requests.post("https://vitatecpersonal.loca.lt/crear", json=datos)
             if response.status_code == 200:

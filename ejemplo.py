@@ -142,52 +142,6 @@ def obtener_dnis_pacientes():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/webhook/crear-paciente-automatico/<dni>', methods=['POST'])
-@require_api_key
-def crear_paciente_automatico(dni):
-    ruta_json = RUTA_SOLICITUDES / f"{dni.lower()}.json"
-
-    if not ruta_json.exists():
-        return jsonify({"status": "error", "message": "Archivo de solicitud no encontrado"}), 404
-
-    try:
-        # Leer datos actuales
-        with open(ruta_json, "r", encoding="utf-8") as f:
-            datos = json.load(f)
-
-        if datos.get("procesado") is True:
-            return jsonify({"status": "ok", "message": "Ya procesado anteriormente"})
-
-        # Ejecutar el script
-        result = subprocess.run(
-            ["python", "Crear_usuario.py", str(ruta_json)],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True
-        )
-
-        # Marcar como procesado
-        datos["procesado"] = True
-        with open(ruta_json, "w", encoding="utf-8") as f:
-            json.dump(datos, f, indent=2, ensure_ascii=False)
-
-        return jsonify({
-            "status": "success",
-            "message": "Paciente creado automáticamente",
-            "output": result.stdout
-        })
-
-    except subprocess.CalledProcessError as e:
-        return jsonify({
-            "status": "error",
-            "message": "Error al crear paciente",
-            "output": e.stderr
-        }), 500
-    except Exception as ex:
-        return jsonify({"status": "error", "message": str(ex)}), 500
-
-
 # ==============================================
 # CLASE PARA MANEJO DE ESICLINIC
 # ==============================================

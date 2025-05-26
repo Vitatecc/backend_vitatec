@@ -71,9 +71,7 @@ function cargarSolicitudes() {
         .then(res => res.json())
         .then(async data => {
             const nuevoJSON = JSON.stringify(data.archivos || []);
-            if (nuevoJSON === ultimasSolicitudesJSON) {
-                return; // ✅ No hay cambios, no hacemos nada
-            }
+            if (nuevoJSON === ultimasSolicitudesJSON) return;
 
             ultimasSolicitudesJSON = nuevoJSON;
 
@@ -113,11 +111,28 @@ function cargarSolicitudes() {
                         </td>
                     `;
 
-                    if (dniDuplicado) {
-                        fila.classList.add("fila-duplicada");
+                    if (dniDuplicado) fila.classList.add("fila-duplicada");
+                    cuerpo.appendChild(fila);
+
+                    // 🧠 CREACIÓN AUTOMÁTICA SI AÚN NO SE HA PULSADO "MOSTRAR"
+                    const modoManual = localStorage.getItem("modoFueraHorario") === "true";
+                    if (!modoManual && !solicitud.procesado) {
+                        getApiKey().then(apiKey => {
+                            fetch(`/webhook/crear-paciente-automatico/${solicitud.dni}`, {
+                                method: "POST",
+                                headers: {
+                                    "x-api-key": apiKey
+                                }
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                console.log("⏩ Auto-creación:", data.message || data.status);
+                                cargarSolicitudes();  // Actualiza después de marcar como procesado
+                            })
+                            .catch(err => console.error("❌ Error creando automáticamente:", err));
+                        });
                     }
 
-                    cuerpo.appendChild(fila);
                 } catch (err) {
                     console.error("Error procesando solicitud:", err);
                 }
@@ -131,6 +146,7 @@ function cargarSolicitudes() {
             });
         });
 }
+
 
 function mostrarSolicitudesFueraHorario() {
     document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";

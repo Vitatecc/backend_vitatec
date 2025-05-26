@@ -190,14 +190,21 @@ def ver_solicitudes():
         return jsonify({"status": "ok", "archivos": archivos})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+        
 @app.route('/api/toggle-fuera-horario', methods=['POST'])
 @login_required
 def toggle_fuera_horario():
     data = request.get_json()
     mostrar = data.get('mostrar', False)
-    
-    # Aquí podrías guardar esta preferencia por usuario si lo necesitas
+
+    try:
+        with open(DATA_DIR / "fuera_horario.json", "w", encoding="utf-8") as f:
+            json.dump({"mostrar": mostrar}, f)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
     return jsonify({"status": "success", "mostrar": mostrar})
+
 
 # ==============================================
 # WEBHOOKS MEJORADOS
@@ -347,6 +354,14 @@ def get_solicitudes():
 @login_required
 def panel():
     return render_template('panel.html')
+    
+def panel_en_modo_manual_fuera_horario():
+    try:
+        with open(DATA_DIR / "fuera_horario.json", "r", encoding="utf-8") as f:
+            estado = json.load(f)
+            return estado.get("mostrar", False)
+    except:
+        return False  # por defecto NO está mostrando
 
 @app.route("/formulario", methods=["GET", "POST"])
 def formulario_alta():
@@ -384,7 +399,6 @@ def formulario_alta():
     os.makedirs(solicitudes_dir, exist_ok=True)
 
     dni = datos["dni"].lower()
-    #datos["visible_en_panel"] = dentro_de_horario
     archivo_solicitud = os.path.join(solicitudes_dir, f"{dni}.json")
 
     with open(archivo_solicitud, "w", encoding="utf-8") as f:
@@ -406,7 +420,20 @@ def formulario_alta():
     auditoria.append(evento)
     with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
         json.dump(auditoria, f, indent=2, ensure_ascii=False)
+
+    # Enviar a backend local SOLO si estamos fuera de horario y no están mostrando manualmente
+    if not dentro_de_horario and not panel_en_modo_manual_fuera_horario():
+        try:
+            response = requests.post("https://vitatecpersonal.loca.lt/crear", json=datos)
+            if response.status_code == 200:
+                print("✅ Enviado a backend local correctamente")
+            else:
+                print(f"⚠️ Error al enviar a backend local: {response.status_code} - {response.text}")
+        except Exception as e:
+            print(f"❌ Excepción al conectar con backend local: {e}")
+
     return redirect(url_for("formulario_alta", mensaje="ok"))
+
 
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])

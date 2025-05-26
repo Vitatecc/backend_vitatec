@@ -413,13 +413,13 @@ def formulario_alta():
     ahora = datetime.now()
     dia_semana = ahora.weekday()
     hora_actual = ahora.time()
-    dentro_de_horario = False
-    #dentro_de_horario = (
-        #dia_semana < 5 and (
-            #dtime(10, 0) <= hora_actual <= dtime(14, 0) or
-            #dtime(16, 0) <= hora_actual <= dtime(20, 0)
-        #)
-    #)
+    #dentro_de_horario = False //PARA SIMULAR QUE ESTAMOS FUERA DE HORARIO LABORAL
+    dentro_de_horario = (
+        dia_semana < 5 and (
+            dtime(10, 0) <= hora_actual <= dtime(14, 0) or
+            dtime(16, 0) <= hora_actual <= dtime(20, 0)
+        )
+    )
 
     solicitudes_dir = os.path.join("data", "solicitudes")
     os.makedirs(solicitudes_dir, exist_ok=True)

@@ -29,7 +29,7 @@
 
       <!-- DNI -->
       <label class="block mt-4 mb-1 text-sm font-medium">DNI/NIE/Pasaporte</label>
-      <input name="dni" value="{{ datos.dni }}" type="text" pattern="[A-Za-z0-9]{6,10}" class="w-full p-2 border rounded-md" required>
+      <input id="dniInput" name="dni" value="{{ datos.dni }}" type="text" pattern="[A-Za-z0-9]{6,10}" class="w-full p-2 border rounded-md" required>
       {% if errores.dni %}
         <p class="text-sm text-red-600 mt-1">{{ errores.dni }}</p>
       {% endif %}
@@ -84,5 +84,25 @@
     window.location.href = "/formulario?mensaje=ok";
   }
 </script>
+<script>
+  // Comprobación automática de duplicados al salir del campo DNI
+  document.getElementById("dniInput")?.addEventListener("blur", () => {
+    const dni = document.getElementById("dniInput").value.trim().toLowerCase();
+    if (!dni) return;
+
+    fetch("/api/pacientes/dnis")
+      .then(res => res.json())
+      .then(data => {
+        const existe = data.map(d => d.toLowerCase()).includes(dni);
+        if (existe) {
+          alert("⚠️ Este DNI ya está registrado en el sistema. Si crees que es un error, contacta con la clínica.");
+        }
+      })
+      .catch(err => {
+        console.error("Error comprobando duplicados:", err);
+      });
+  });
+</script>
+
 
 {% endblock %}

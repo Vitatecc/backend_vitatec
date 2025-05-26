@@ -85,7 +85,8 @@
   }
 </script>
 <script>
-  // Comprobación automática de duplicados al salir del campo DNI
+  let dniDuplicado = false;  // Variable global para saber si el DNI está repetido
+
   document.getElementById("dniInput")?.addEventListener("blur", () => {
     const dni = document.getElementById("dniInput").value.trim().toLowerCase();
     if (!dni) return;
@@ -94,15 +95,31 @@
       .then(res => res.json())
       .then(data => {
         const existe = data.map(d => d.toLowerCase()).includes(dni);
+        dniDuplicado = existe;
         if (existe) {
-          alert("⚠️ Este DNI ya está registrado en el sistema. Si crees que es un error, contacta con la clínica.");
+          alert("⚠️ Este DNI ya está registrado en el sistema. No puedes enviar otra solicitud.");
         }
       })
       .catch(err => {
         console.error("Error comprobando duplicados:", err);
       });
   });
+
+  // Cancelar envío del formulario si el DNI está repetido
+  document.querySelector("form")?.addEventListener("submit", (e) => {
+    const esManual = localStorage.getItem("modoFueraHorario") === "true";
+    document.getElementById("modo_manual").value = esManual ? "true" : "false";
+
+    if (dniDuplicado) {
+      e.preventDefault(); // Evita el envío
+      alert("❌ No se puede enviar el formulario. El DNI ya existe en el sistema.");
+      return;
+    }
+
+    sessionStorage.setItem("formEnviado", "true");
+  });
 </script>
+
 
 
 {% endblock %}

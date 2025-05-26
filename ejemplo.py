@@ -409,6 +409,23 @@ def formulario_alta():
 
     if errores:
         return render_template("formulario.html", datos=datos, errores=errores)
+    # Comprobación de DNI duplicado en Google Sheets
+    try:
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("pacientes.xlsx").sheet1
+        datos_hoja = sheet.get_all_records()
+        dnis_en_sheets = [fila.get("CIF", "").strip().lower() for fila in datos_hoja]
+
+        if datos["dni"].strip().lower() in dnis_en_sheets:
+            errores["dni"] = "Este DNI ya está registrado en el sistema."
+            return render_template("formulario.html", datos=datos, errores=errores)
+    except Exception as e:
+        print(f"❌ Error al comprobar Google Sheets: {e}")
 
     ahora = datetime.now()
     dia_semana = ahora.weekday()

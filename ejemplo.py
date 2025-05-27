@@ -481,6 +481,33 @@ def formulario_cancelacion():
 
     return redirect(url_for("formulario_cancelacion", mensaje="ok"))
 
+@app.route("/cancelaciones")
+@login_required
+def ver_cancelaciones():
+    try:
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/drive.readonly'
+        ]
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("cancelaciones.xlsx").sheet1
+        datos = sheet.get_all_records()
+
+        # Contar número de cancelaciones por cliente
+        conteo = {}
+        for fila in datos:
+            dni = fila.get("DNI", "")
+            conteo[dni] = conteo.get(dni, 0) + 1
+            fila["cancelaciones"] = conteo[dni]
+
+        return render_template("cancelaciones.html", cancelaciones=datos)
+    except Exception as e:
+        return f"❌ Error al cargar cancelaciones: {e}", 500
+
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])
 @require_api_key

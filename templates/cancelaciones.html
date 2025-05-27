@@ -2,136 +2,130 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cancelaciones registradas</title>
+    <title>Cancelaciones Registradas</title>
+    <link rel="stylesheet" href="/static/styles.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
+            margin: 40px;
+            background-color: #f9f9f9;
         }
-        header {
-            background-color: #343a40;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+
         h1 {
-            margin: 0;
-            font-size: 32px;
+            color: #444;
+            margin-bottom: 20px;
         }
+
         table {
-            width: 90%;
-            margin: 30px auto;
             border-collapse: collapse;
+            width: 100%;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         th, td {
-            border: 1px solid #dee2e6;
             padding: 12px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
         }
+
         th {
-            background-color: #007bff;
+            background-color: #e5e5e5;
+        }
+
+        tr.rojo {
+            background-color: #ffe6e6;
+        }
+
+        button {
+            padding: 8px 12px;
+            background-color: #d9534f;
             color: white;
-        }
-        .reincidente {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .btn-volver {
-            display: inline-block;
-            margin: 20px auto;
-            text-align: center;
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .btn-volver:hover {
-            background-color: #0056b3;
-        }
-        .eliminar-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 6px 10px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
-        .eliminar-btn:hover {
-            background-color: #bd2130;
+
+        button:hover {
+            background-color: #c9302c;
+        }
+
+        .volver {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #5bc0de;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .volver:hover {
+            background-color: #31b0d5;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>📉 Cancelaciones registradas</h1>
-    </header>
-    <main>
-        <table id="tablaCancelaciones">
-            <thead>
-                <tr>
-                    <th>DNI</th>
-                    <th>Motivo</th>
-                    <th>Comentario</th>
-                    <th>Mejora</th>
-                    <th>Ayuda reagendar</th>
-                    <th>Timestamp</th>
-                    <th>Nº Cancelaciones</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="cancelacionesBody">
-                <!-- JavaScript insertará las filas -->
-            </tbody>
-        </table>
-        <div style="text-align: center;">
-            <a href="/" class="btn-volver">⬅️ Volver al panel</a>
-        </div>
-    </main>
+
+    <a href="/" class="volver">← Volver al Panel</a>
+    <h1>Cancelaciones registradas</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>DNI</th>
+                <th>Motivo</th>
+                <th>Comentario</th>
+                <th>Mejora</th>
+                <th>Reagendar</th>
+                <th>Timestamp</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in cancelaciones %}
+            <tr class="{{ 'rojo' if fila.cancelaciones >= 3 }}">
+                <td>{{ fila.DNI }}</td>
+                <td>{{ fila.Motivo }}</td>
+                <td>{{ fila.Comentario }}</td>
+                <td>{{ fila.Mejora }}</td>
+                <td>{{ fila['Ayuda reagendar'] }}</td>
+                <td>{{ fila.Timestamp }}</td>
+                <td>
+                    <button onclick="eliminarFila('{{ fila.DNI }}', '{{ fila.Timestamp }}')">Eliminar</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        fetch("/static/data/cancelaciones.json")
-            .then(res => res.json())
-            .then(data => {
-                const cuerpo = document.getElementById("cancelacionesBody");
-                const conteo = {};
-                data.forEach(e => {
-                    const dni = e.DNI || "";
-                    conteo[dni] = (conteo[dni] || 0) + 1;
-                });
-                data.forEach((e, index) => {
-                    const fila = document.createElement("tr");
-                    if (conteo[e.DNI] >= 3) fila.classList.add("reincidente");
-                    fila.innerHTML = `
-                        <td>${e.DNI || ""}</td>
-                        <td>${e.Motivo || ""}</td>
-                        <td>${e.Comentario || ""}</td>
-                        <td>${e.Mejora || ""}</td>
-                        <td>${e["Ayuda reagendar"] || ""}</td>
-                        <td>${e.Timestamp || ""}</td>
-                        <td>${conteo[e.DNI]}</td>
-                        <td><button class="eliminar-btn" onclick="eliminar(${index})">Eliminar</button></td>
-                    `;
-                    cuerpo.appendChild(fila);
-                });
-            })
-            .catch(err => console.error("Error cargando cancelaciones:", err));
-    });
+        function eliminarFila(dni, timestamp) {
+            if (!confirm("¿Estás seguro de que deseas eliminar esta cancelación?")) return;
 
-    function eliminar(index) {
-        if (!confirm("¿Seguro que quieres eliminar esta cancelación?")) return;
-        fetch(`/api/eliminar-cancelacion/${index}`, { method: "DELETE" })
+            fetch('/webhook/eliminar-cancelacion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': '{{ API_KEY if API_KEY else "" }}'
+                },
+                body: JSON.stringify({ dni: dni, timestamp: timestamp })
+            })
             .then(res => res.json())
             .then(data => {
-                if (data.status === "ok") location.reload();
-                else alert("Error al eliminar");
+                if (data.status === "success") {
+                    alert("Cancelación eliminada");
+                    location.reload();
+                } else {
+                    alert("Error al eliminar: " + data.message);
+                }
+            })
+            .catch(err => {
+                alert("Error al conectar con el servidor");
+                console.error(err);
             });
-    }
+        }
     </script>
+
 </body>
 </html>

@@ -479,7 +479,7 @@ def formulario_cancelacion():
     except Exception as e:
         print(f"❌ Error al enviar a Google Sheets: {e}")
 
-    return redirect(url_for("formulario_cancelacion", mensaje="ok"))
+    return redirect(url_for("ver_cancelaciones"))
 
 @app.route("/cancelaciones")
 @login_required

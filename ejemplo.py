@@ -434,7 +434,8 @@ def formulario_cancelacion():
     ruta_cancelaciones = DATA_DIR / "cancelaciones.json"
 
     if request.method == "GET":
-        return render_template("cancelacion.html")
+        mensaje = request.args.get("mensaje") == "ok"
+        return render_template("cancelacion.html", mensaje=mensaje)
 
     # Recoger datos del formulario
     datos = request.form.to_dict()
@@ -478,7 +479,7 @@ def formulario_cancelacion():
     except Exception as e:
         print(f"❌ Error al enviar a Google Sheets: {e}")
 
-    return render_template("cancelacion.html")
+    return redirect(url_for("formulario_cancelacion", mensaje="ok"))
 
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])

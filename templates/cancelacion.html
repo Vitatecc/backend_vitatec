@@ -121,23 +121,24 @@
     {% endif %}
   </div>
   <script>
-    document.querySelector("form").addEventListener("submit", async function(event) {
-      const dni = document.getElementById("dni").value.trim();
-      if (!dni) return;  // No hacemos nada si el campo está vacío
+    const form = document.querySelector("form");
+    if (form) {
+      form.addEventListener("submit", async function(event) {
+        const dni = document.getElementById("dni").value.trim();
+        if (!dni) return;
   
-      try {
-        const res = await fetch(`/api/cancelaciones/dni?dni=${encodeURIComponent(dni)}`);
-        const data = await res.json();
+        try {
+          const res = await fetch(`/api/cancelaciones/dni?dni=${encodeURIComponent(dni)}`);
+          const data = await res.json();
   
-        if (data.cancelaciones >= 3) {
-          alert("⚠️ Este paciente ya ha registrado 3 cancelaciones. Si continúas, se enviará igualmente.");
-          // NO usamos event.preventDefault() -> así sí se envía igual
+          if (data.cancelaciones >= 3) {
+            alert("⚠️ Este paciente ya ha registrado 3 cancelaciones. Si continúas, se enviará igualmente.");
+          }
+        } catch (err) {
+          console.warn("No se pudo verificar cancelaciones previas", err);
         }
-      } catch (err) {
-        console.warn("No se pudo verificar cancelaciones previas", err);
-      }
-    });
+      });
+    }
   </script>
-
 </body>
 </html>

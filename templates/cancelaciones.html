@@ -69,7 +69,7 @@
 
     <a href="/" class="volver">← Volver al Panel</a>
     <h1>Cancelaciones registradas</h1>
-
+    <p>Total de cancelaciones: {{ cancelaciones | length }}</p>
     <table>
         <thead>
             <tr>
@@ -80,6 +80,7 @@
                 <th>Reagendar</th>
                 <th>Timestamp</th>
                 <th>Acciones</th>
+                <th>Numero cancelaciones </th>
             </tr>
         </thead>
         <tbody>
@@ -91,6 +92,7 @@
                 <td>{{ fila.Mejora }}</td>
                 <td>{{ fila['Ayuda reagendar'] }}</td>
                 <td>{{ fila.Timestamp }}</td>
+                <td>{{ fila.cancelaciones }}</td>
                 <td>
                     <button onclick="eliminarFila('{{ fila.DNI }}', '{{ fila.Timestamp }}')">Eliminar</button>
                 </td>

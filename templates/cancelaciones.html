@@ -109,7 +109,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-api-key': '{{ API_KEY if API_KEY else "" }}'
+                    'x-api-key': '{{ API_KEY }}'
                 },
                 body: JSON.stringify({ dni: dni, timestamp: timestamp })
             })

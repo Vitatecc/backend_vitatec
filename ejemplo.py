@@ -440,7 +440,10 @@ def formulario_cancelacion():
     datos = request.form.to_dict()
     datos["timestamp"] = datetime.now().isoformat()
 
-    # Guardar en JSON local (opcional como backup)
+    # Asegurar valores explícitos para campos nuevos
+    datos["ayuda_reagendar"] = "Sí" if datos.get("ayuda_reagendar") else "No"
+
+    # Guardar en JSON local (backup)
     try:
         with open(ruta_cancelaciones, "r", encoding="utf-8") as f:
             cancelaciones = json.load(f)
@@ -451,6 +454,7 @@ def formulario_cancelacion():
     with open(ruta_cancelaciones, "w", encoding="utf-8") as f:
         json.dump(cancelaciones, f, indent=2, ensure_ascii=False)
 
+    # Guardar en Google Sheets
     try:
         SCOPES = [
             'https://www.googleapis.com/auth/spreadsheets',
@@ -463,18 +467,18 @@ def formulario_cancelacion():
         client = gspread.authorize(creds)
         sheet = client.open("cancelaciones.xlsx").sheet1
         fila = [
-            datos.get("DNI", ""),
-            datos.get("Fecha cita", ""),
-            datos.get("Motivo", ""),
-            datos.get("Comentario", ""),
-            datos["Timestamp"]
+            datos.get("dni", ""),
+            datos.get("motivo", ""),
+            datos.get("comentario", ""),
+            datos.get("mejora", ""),
+            datos.get("ayuda_reagendar", ""),
+            datos["timestamp"]
         ]
         sheet.append_row(fila)
     except Exception as e:
         print(f"❌ Error al enviar a Google Sheets: {e}")
 
     return render_template("cancelacion.html")
-
 
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])

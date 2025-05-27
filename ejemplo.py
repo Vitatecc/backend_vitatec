@@ -503,7 +503,7 @@ def ver_cancelaciones():
             conteo[dni] = conteo.get(dni, 0) + 1
             fila["cancelaciones"] = conteo[dni]
 
-        return render_template("cancelaciones.html", cancelaciones=datos)
+        return render_template("cancelaciones.html", cancelaciones=datos, API_KEY=API_KEY)
     except Exception as e:
         return f"❌ Error al cargar cancelaciones: {e}", 500
         

@@ -1,133 +1,76 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Cancelaciones Registradas</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f9f9f9;
-        }
+{% extends "base.html" %}
 
-        h1 {
-            color: #444;
-            margin-bottom: 20px;
-        }
+{% block content %}
+<div class="w-full max-w-7xl mx-auto mt-12 px-6 py-8 bg-white rounded-lg shadow-lg">
+  <a href="/" class="inline-block mb-6 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded">
+    ← Volver al Panel
+  </a>
 
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+  <h1 class="text-2xl font-semibold text-gray-800 mb-2">Cancelaciones registradas</h1>
+  <p class="mb-6 text-gray-600">Total de cancelaciones: {{ cancelaciones | length }}</p>
 
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #e5e5e5;
-        }
-
-        tr.rojo {
-            background-color: #ffe6e6;
-        }
-
-        button {
-            padding: 8px 12px;
-            background-color: #d9534f;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #c9302c;
-        }
-
-        .volver {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 15px;
-            background-color: #5bc0de;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-
-        .volver:hover {
-            background-color: #31b0d5;
-        }
-    </style>
-</head>
-<body>
-
-    <a href="/" class="volver">← Volver al Panel</a>
-    <h1>Cancelaciones registradas</h1>
-    <p>Total de cancelaciones: {{ cancelaciones | length }}</p>
-    <table>
-        <thead>
-            <tr>
-                <th>DNI</th>
-                <th>Motivo</th>
-                <th>Comentario</th>
-                <th>Mejora</th>
-                <th>Reagendar</th>
-                <th>Timestamp</th>
-                <th>Acciones</th>
-                <th>Numero cancelaciones </th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for fila in cancelaciones %}
-            <tr class="{{ 'rojo' if fila.cancelaciones >= 3 }}">
-                <td>{{ fila.DNI }}</td>
-                <td>{{ fila.Motivo }}</td>
-                <td>{{ fila.Comentario }}</td>
-                <td>{{ fila.Mejora }}</td>
-                <td>{{ fila['Ayuda reagendar'] }}</td>
-                <td>{{ fila.Timestamp }}</td>
-                <td>{{ fila.cancelaciones }}</td>
-                <td>
-                    <button onclick="eliminarFila('{{ fila.DNI }}', '{{ fila.Timestamp }}')">Eliminar</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border rounded-lg overflow-hidden shadow-sm text-sm">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="px-4 py-3 text-left">DNI</th>
+          <th class="px-4 py-3 text-left">Motivo</th>
+          <th class="px-4 py-3 text-left">Comentario</th>
+          <th class="px-4 py-3 text-left">Mejora</th>
+          <th class="px-4 py-3 text-left">Reagendar</th>
+          <th class="px-4 py-3 text-left">Timestamp</th>
+          <th class="px-4 py-3 text-left">Cancelaciones</th>
+          <th class="px-4 py-3 text-left">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        {% for fila in cancelaciones %}
+        <tr class="{% if fila.cancelaciones >= 3 %}bg-red-100{% endif %}">
+          <td class="px-4 py-3">{{ fila.DNI }}</td>
+          <td class="px-4 py-3">{{ fila.Motivo }}</td>
+          <td class="px-4 py-3">{{ fila.Comentario }}</td>
+          <td class="px-4 py-3">{{ fila.Mejora }}</td>
+          <td class="px-4 py-3">{{ fila['Ayuda reagendar'] }}</td>
+          <td class="px-4 py-3">{{ fila.Timestamp }}</td>
+          <td class="px-4 py-3 font-semibold">{{ fila.cancelaciones }}</td>
+          <td class="px-4 py-3">
+            <button onclick="eliminarFila('{{ fila.DNI }}', '{{ fila.Timestamp }}')"
+              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+              Eliminar
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
+</div>
 
-    <script>
-        function eliminarFila(dni, timestamp) {
-            if (!confirm("¿Estás seguro de que deseas eliminar esta cancelación?")) return;
+<script>
+  function eliminarFila(dni, timestamp) {
+    if (!confirm("¿Estás seguro de que deseas eliminar esta cancelación?")) return;
 
-            fetch('/webhook/eliminar-cancelacion', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': '{{ API_KEY }}'
-                },
-                body: JSON.stringify({ dni: dni, timestamp: timestamp })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert("Cancelación eliminada");
-                    location.reload();
-                } else {
-                    alert("Error al eliminar: " + data.message);
-                }
-            })
-            .catch(err => {
-                alert("Error al conectar con el servidor");
-                console.error(err);
-            });
-        }
-    </script>
-
-</body>
-</html>
+    fetch('/webhook/eliminar-cancelacion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': '{{ API_KEY }}'
+      },
+      body: JSON.stringify({ dni: dni, timestamp: timestamp })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert("Cancelación eliminada");
+        location.reload();
+      } else {
+        alert("Error al eliminar: " + data.message);
+      }
+    })
+    .catch(err => {
+      alert("Error al conectar con el servidor");
+      console.error(err);
+    });
+  }
+</script>
+{% endblock %}

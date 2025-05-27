@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cancelaciones - Panel Vitatec</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .reincidente {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📉 Cancelaciones registradas</h1>
+  </header>
+
+  <main>
+    <section>
+      <table id="tablaCancelaciones">
+        <thead>
+          <tr>
+            <th>DNI</th>
+            <th>Fecha cita</th>
+            <th>Motivo</th>
+            <th>Comentario</th>
+            <th>Timestamp</th>
+            <th>Nº Cancelaciones</th>
+          </tr>
+        </thead>
+        <tbody id="cancelacionesBody">
+          <!-- JavaScript insertará las filas -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("/static/data/cancelaciones.json")
+        .then(res => res.json())
+        .then(data => {
+          const cuerpo = document.getElementById("cancelacionesBody");
+          const conteo = {};
+          data.forEach(e => {
+            const dni = e.DNI || "";
+            conteo[dni] = (conteo[dni] || 0) + 1;
+          });
+          data.forEach(e => {
+            const fila = document.createElement("tr");
+            if (conteo[e.DNI] > 2) fila.classList.add("reincidente");
+            fila.innerHTML = `
+              <td>${e.DNI || ""}</td>
+              <td>${e["Fecha cita"] || ""}</td>
+              <td>${e.Motivo || ""}</td>
+              <td>${e.Comentario || ""}</td>
+              <td>${e.timestamp || ""}</td>
+              <td>${conteo[e.DNI]}</td>
+            `;
+            cuerpo.appendChild(fila);
+          });
+        })
+        .catch(err => console.error("Error cargando cancelaciones:", err));
+    });
+  </script>
+
+</body>
+</html>

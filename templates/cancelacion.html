@@ -1,101 +1,100 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario de Cancelación</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 40px auto;
-            text-align: center;
-        }
-        .container img {
-            max-width: 150px;
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #0d6efd;
-            margin-bottom: 5px;
-        }
-        label {
-            display: block;
-            margin-top: 15px;
-            text-align: left;
-            font-weight: bold;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-        button {
-            margin-top: 20px;
-            padding: 12px 20px;
-            background-color: #0d6efd;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #084298;
-        }
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-        .checkbox-wrapper input {
-            margin-right: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario de Cancelación</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #007BFF;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      text-align: left;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-top: 15px;
+      justify-content: center;
+    }
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+    .logo {
+      max-width: 120px;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
 <div class="container">
-    <img src="/static/img/logo.png" alt="Logo Vitatec">
-    <h2>Formulario de Cancelación</h2>
-    <form method="POST" action="/cancelacion">
-        <label for="dni">Nº Cliente:</label>
-        <input type="text" id="dni" name="dni" required>
+  <img src="/static/img/logo.png" alt="Logo Vitatec" class="logo">
+  <h2>Formulario de Cancelación</h2>
+  <form method="POST" action="/cancelacion">
+    <label for="dni_cliente">DNI o Nº Cliente:</label>
+    <input type="text" id="dni_cliente" name="dni" required>
 
-        <label for="motivo">Motivo de la cancelación:</label>
-        <select id="motivo" name="motivo" required>
-            <option value="">-- Selecciona un motivo --</option>
-            <option value="Enfermedad">Enfermedad</option>
-            <option value="Cambio de planes">Cambio de planes</option>
-            <option value="No me encuentro bien">No me encuentro bien</option>
-            <option value="Otro">Otro</option>
-        </select>
+    <label for="motivo">Motivo de la cancelación:</label>
+    <select id="motivo" name="motivo" required>
+      <option value="">-- Selecciona un motivo --</option>
+      <option value="Enfermedad">Enfermedad</option>
+      <option value="Cambio de planes">Cambio de planes</option>
+      <option value="No me encuentro bien">No me encuentro bien</option>
+      <option value="Otro">Otro</option>
+    </select>
 
-        <label for="comentario">Comentario adicional (opcional):</label>
-        <textarea id="comentario" name="comentario" rows="3"></textarea>
+    <label for="comentario">Comentario adicional (opcional):</label>
+    <textarea id="comentario" name="comentario" rows="3"></textarea>
 
-        <label for="mejora">¿En qué podemos mejorar para futuras citas? (opcional):</label>
-        <textarea id="mejora" name="mejora" rows="3"></textarea>
+    <label for="mejora">¿En qué podemos mejorar para futuras citas? (opcional):</label>
+    <textarea id="mejora" name="mejora" rows="3"></textarea>
 
-        <div class="checkbox-wrapper">
-            <input type="checkbox" id="reagendar" name="reagendar">
-            <label for="reagendar">Deseo recibir ayuda para reagendar</label>
-        </div>
+    <div class="checkbox-group">
+      <input type="checkbox" id="reagendar" name="reagendar">
+      <label for="reagendar" style="margin: 0;">Deseo recibir ayuda para reagendar</label>
+    </div>
 
-        <button type="submit">Enviar</button>
-    </form>
+    <button type="submit">Enviar</button>
+  </form>
 </div>
 </body>
 </html>

@@ -6,7 +6,7 @@
   <p class="text-gray-600 mb-6">Total de cancelaciones: {{ cancelaciones | length }}</p>
 
   <div class="overflow-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-    <table class="min-w-full divide-y divide-gray-300 text-sm text-left">
+    <table id="tablaCancelaciones" class="min-w-full divide-y divide-gray-300 text-sm text-left">
       <thead class="bg-blue-600 text-white">
         <tr>
           <th class="px-4 py-3">DNI</th>
@@ -69,4 +69,24 @@
     });
   }
 </script>
+<script>
+  function actualizarCancelaciones() {
+    fetch('/cancelaciones')
+      .then(res => res.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const nuevaTabla = doc.querySelector("#tablaCancelaciones");
+        const actual = document.querySelector("#tablaCancelaciones");
+        if (nuevaTabla && actual) {
+          actual.innerHTML = nuevaTabla.innerHTML;
+        }
+      })
+      .catch(err => console.warn("❌ Error al actualizar cancelaciones:", err));
+  }
+
+  // Ejecutar al cargar y cada 15 segundos
+  setInterval(actualizarCancelaciones, 15000);
+</script>
+
 {% endblock %}

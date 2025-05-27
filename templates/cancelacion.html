@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Formulario de Cancelación</title>
+  <link rel="stylesheet" href="/static/styles.css">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,57 +11,74 @@
       background-color: #f4f4f4;
       color: #333;
     }
+
     .container {
       background-color: #fff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
+      max-width: 550px;
       margin: auto;
-      text-align: center;
+      text-align: left;
     }
+
     h2 {
-      margin-bottom: 20px;
+      text-align: center;
       color: #007BFF;
+      margin-top: 10px;
     }
+
     label {
       display: block;
       margin-top: 15px;
-      text-align: left;
       font-weight: bold;
     }
+
     input, select, textarea {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
+      margin-top: 6px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 5px;
     }
+
     button {
       margin-top: 20px;
       padding: 10px 20px;
       background-color: #007BFF;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
+      display: block;
+      width: 100%;
     }
+
     button:hover {
       background-color: #0056b3;
     }
+
     .checkbox-group {
       display: flex;
       align-items: center;
-      margin-top: 15px;
-      justify-content: center;
+      margin-top: 10px;
     }
-    .checkbox-group input[type="checkbox"] {
+
+    .checkbox-group input {
       margin-right: 10px;
-      transform: scale(1.2);
     }
+
     .logo {
-      max-width: 120px;
-      margin-bottom: 15px;
+      display: block;
+      margin: 0 auto 10px;
+      max-width: 140px;
+    }
+
+    .mensaje-confirmacion {
+      text-align: center;
+      color: green;
+      font-size: 1.2em;
+      margin-top: 30px;
     }
   </style>
 </head>
@@ -69,9 +86,13 @@
 <div class="container">
   <img src="/static/img/logo.png" alt="Logo Vitatec" class="logo">
   <h2>Formulario de Cancelación</h2>
+
+  {% if mensaje %}
+    <p class="mensaje-confirmacion">✅ Tu cancelación ha sido registrada correctamente. Gracias por tu tiempo.</p>
+  {% else %}
   <form method="POST" action="/cancelacion">
-    <label for="dni_cliente">DNI o Nº Cliente:</label>
-    <input type="text" id="dni_cliente" name="dni" required>
+    <label for="dni">DNI o Nº Cliente:</label>
+    <input type="text" id="dni" name="dni" required>
 
     <label for="motivo">Motivo de la cancelación:</label>
     <select id="motivo" name="motivo" required>
@@ -89,12 +110,15 @@
     <textarea id="mejora" name="mejora" rows="3"></textarea>
 
     <div class="checkbox-group">
-      <input type="checkbox" id="reagendar" name="reagendar">
-      <label for="reagendar" style="margin: 0;">Deseo recibir ayuda para reagendar</label>
+      <label style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
+        <input type="checkbox" id="reagendar" name="reagendar" style="transform: scale(1.2);">
+        <span>Deseo recibir ayuda para reagendar</span>
+      </label>
     </div>
 
     <button type="submit">Enviar</button>
   </form>
+  {% endif %}
 </div>
 </body>
 </html>

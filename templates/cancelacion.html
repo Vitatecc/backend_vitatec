@@ -83,42 +83,61 @@
   </style>
 </head>
 <body>
-<div class="container">
-  <img src="/static/img/logo.png" alt="Logo Vitatec" class="logo">
-  <h2>Formulario de Cancelación</h2>
+  <div class="container">
+    <img src="/static/img/logo.png" alt="Logo Vitatec" class="logo">
+    <h2>Formulario de Cancelación</h2>
+  
+    {% if mensaje %}
+      <p class="mensaje-confirmacion">✅ Tu cancelación ha sido registrada correctamente. Gracias por tu tiempo.</p>
+    {% else %}
+    <form method="POST" action="/cancelacion">
+      <label for="dni">DNI o Nº Cliente:</label>
+      <input type="text" id="dni" name="dni" required>
+  
+      <label for="motivo">Motivo de la cancelación:</label>
+      <select id="motivo" name="motivo" required>
+        <option value="">-- Selecciona un motivo --</option>
+        <option value="Enfermedad">Enfermedad</option>
+        <option value="Cambio de planes">Cambio de planes</option>
+        <option value="No me encuentro bien">No me encuentro bien</option>
+        <option value="Otro">Otro</option>
+      </select>
+  
+      <label for="comentario">Comentario adicional (opcional):</label>
+      <textarea id="comentario" name="comentario" rows="3"></textarea>
+  
+      <label for="mejora">¿En qué podemos mejorar para futuras citas? (opcional):</label>
+      <textarea id="mejora" name="mejora" rows="3"></textarea>
+  
+      <div class="checkbox-group">
+        <label style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
+          <span>Deseo recibir ayuda para reagendar</span>
+          <input type="checkbox" id="ayuda_reagendar" name="ayuda_reagendar" style="transform: scale(1.2);">
+        </label>
+      </div>
+  
+      <button type="submit">Enviar</button>
+    </form>
+    {% endif %}
+  </div>
+  <script>
+    document.querySelector("form").addEventListener("submit", async function(event) {
+      const dni = document.getElementById("dni").value.trim();
+      if (!dni) return;  // No hacemos nada si el campo está vacío
+  
+      try {
+        const res = await fetch(`/api/cancelaciones/dni?dni=${encodeURIComponent(dni)}`);
+        const data = await res.json();
+  
+        if (data.cancelaciones >= 3) {
+          alert("⚠️ Este paciente ya ha registrado 3 cancelaciones. Si continúas, se enviará igualmente.");
+          // NO usamos event.preventDefault() -> así sí se envía igual
+        }
+      } catch (err) {
+        console.warn("No se pudo verificar cancelaciones previas", err);
+      }
+    });
+  </script>
 
-  {% if mensaje %}
-    <p class="mensaje-confirmacion">✅ Tu cancelación ha sido registrada correctamente. Gracias por tu tiempo.</p>
-  {% else %}
-  <form method="POST" action="/cancelacion">
-    <label for="dni">DNI o Nº Cliente:</label>
-    <input type="text" id="dni" name="dni" required>
-
-    <label for="motivo">Motivo de la cancelación:</label>
-    <select id="motivo" name="motivo" required>
-      <option value="">-- Selecciona un motivo --</option>
-      <option value="Enfermedad">Enfermedad</option>
-      <option value="Cambio de planes">Cambio de planes</option>
-      <option value="No me encuentro bien">No me encuentro bien</option>
-      <option value="Otro">Otro</option>
-    </select>
-
-    <label for="comentario">Comentario adicional (opcional):</label>
-    <textarea id="comentario" name="comentario" rows="3"></textarea>
-
-    <label for="mejora">¿En qué podemos mejorar para futuras citas? (opcional):</label>
-    <textarea id="mejora" name="mejora" rows="3"></textarea>
-
-    <div class="checkbox-group">
-      <label style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
-        <span>Deseo recibir ayuda para reagendar</span>
-        <input type="checkbox" id="ayuda_reagendar" name="ayuda_reagendar" style="transform: scale(1.2);">
-      </label>
-    </div>
-
-    <button type="submit">Enviar</button>
-  </form>
-  {% endif %}
-</div>
 </body>
 </html>

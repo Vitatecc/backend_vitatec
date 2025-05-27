@@ -125,32 +125,34 @@
     const form = document.querySelector("form");
   
     if (form) {
-      let confirmacionMostrada = false;
-  
-      form.addEventListener("submit", async function(event) {
+      form.addEventListener("submit", async function (event) {
         const dni = document.getElementById("dni").value.trim();
         if (!dni) return;
+  
+        event.preventDefault(); // SIEMPRE prevenir por defecto
   
         try {
           const res = await fetch(`/api/cancelaciones/dni?dni=${encodeURIComponent(dni)}`);
           const data = await res.json();
   
-          if (data.cancelaciones >= 3 && !confirmacionMostrada) {
-            event.preventDefault();  // Evita envío automático
-            confirmacionMostrada = true;
-  
+          if (data.cancelaciones >= 3) {
             const continuar = confirm("⚠️ Este paciente ya ha cancelado 3 veces. ¿Deseas continuar?");
-            if (continuar) {
-              form.submit();  // Envío manual tras confirmación
+            if (!continuar) {
+              return; // Cancelación explícita
             }
           }
-          // Si no hay cancelaciones previas o ya se confirmó, no hacemos nada: se envía solo
+  
+          // Si no hay 3 cancelaciones, o el usuario confirmó -> enviar manualmente
+          form.submit();
+  
         } catch (err) {
-          console.warn("❌ No se pudo verificar cancelaciones previas", err);
+          alert("❌ Error al verificar cancelaciones previas. Inténtalo de nuevo.");
+          console.warn("Error de red:", err);
         }
       });
     }
   </script>
+
 
 </body>
 </html>

@@ -429,6 +429,52 @@ def formulario_alta():
 
     return redirect(url_for("formulario_alta", mensaje="ok"))
 
+@app.route("/cancelacion", methods=["GET", "POST"])
+def formulario_cancelacion():
+    ruta_cancelaciones = DATA_DIR / "cancelaciones.json"
+
+    if request.method == "GET":
+        return render_template("cancelacion.html")
+
+    # Recoger datos del formulario
+    datos = request.form.to_dict()
+    datos["timestamp"] = datetime.now().isoformat()
+
+    # Guardar en JSON local (opcional como backup)
+    try:
+        with open(ruta_cancelaciones, "r", encoding="utf-8") as f:
+            cancelaciones = json.load(f)
+    except:
+        cancelaciones = []
+
+    cancelaciones.append(datos)
+    with open(ruta_cancelaciones, "w", encoding="utf-8") as f:
+        json.dump(cancelaciones, f, indent=2, ensure_ascii=False)
+
+    try:
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive'
+        ]
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("cancelaciones.xlsx").sheet1
+        fila = [
+            datos.get("DNI", ""),
+            datos.get("Fecha cita", ""),
+            datos.get("Motivo", ""),
+            datos.get("Comentario", ""),
+            datos["Timestamp"]
+        ]
+        sheet.append_row(fila)
+    except Exception as e:
+        print(f"❌ Error al enviar a Google Sheets: {e}")
+
+    return render_template("cancelacion.html")
+
 
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])

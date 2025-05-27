@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Cancelación</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Motivo de Cancelación</h2>
+    <form method="POST" action="/enviar_cancelacion">
+        <label for="dni">DNI o Nº Cliente:</label>
+        <input type="text" id="dni" name="dni" required>
+
+        <label for="fecha">Fecha de la cita cancelada:</label>
+        <input type="date" id="fecha" name="fecha" required>
+
+        <label for="motivo">Motivo:</label>
+        <select id="motivo" name="motivo" required>
+            <option value="">-- Selecciona un motivo --</option>
+            <option value="enfermedad">Enfermedad</option>
+            <option value="cambio de planes">Cambio de planes</option>
+            <option value="no me encuentro bien">No me encuentro bien</option>
+            <option value="motivo personal">Motivo personal</option>
+            <option value="otros">Otros</option>
+        </select>
+
+        <label for="comentario">Comentario opcional:</label>
+        <textarea id="comentario" name="comentario" rows="4"></textarea>
+
+        <button type="submit">Enviar</button>
+    </form>
+</div>
+</body>
+</html>

@@ -442,7 +442,7 @@ def formulario_cancelacion():
     datos["timestamp"] = datetime.now().isoformat()
 
     # Asegurar valores explícitos para campos nuevos
-    datos["ayuda_reagendar"] = "Sí" if datos.get("ayuda_reagendar") else "No"
+    datos["Ayuda reagendar"] = "Sí" if datos.get("ayuda_reagendar") else "No"
 
     # Guardar en JSON local (backup)
     try:
@@ -472,7 +472,7 @@ def formulario_cancelacion():
             datos.get("motivo", ""),
             datos.get("comentario", ""),
             datos.get("mejora", ""),
-            datos.get("ayuda_reagendar", ""),
+            datos.get("Ayuda reagendar", ""),
             datos["timestamp"]
         ]
         sheet.append_row(fila)
@@ -497,16 +497,40 @@ def ver_cancelaciones():
         sheet = client.open("cancelaciones.xlsx").sheet1
         datos = sheet.get_all_records()
 
-        # Contar número de cancelaciones por cliente
         conteo = {}
         for fila in datos:
-            dni = fila.get("DNI", "")
+            dni = fila.get("DNI", "").strip()
             conteo[dni] = conteo.get(dni, 0) + 1
             fila["cancelaciones"] = conteo[dni]
 
-        return render_template("cancelaciones.html", cancelaciones=datos, API_KEY=API_KEY)
+        return render_template("cancelaciones.html", cancelaciones=datos)
     except Exception as e:
         return f"❌ Error al cargar cancelaciones: {e}", 500
+        
+@app.route("/api/cancelaciones/dni", methods=["GET"])
+def contar_cancelaciones_dni():
+    dni = request.args.get("dni", "").strip()
+    if not dni:
+        return jsonify({"error": "DNI no proporcionado"}), 400
+
+    try:
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/drive.readonly'
+        ]
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("cancelaciones.xlsx").sheet1
+        datos = sheet.get_all_records()
+
+        total = sum(1 for fila in datos if fila.get("DNI", "").strip().lower() == dni.lower())
+        return jsonify({"dni": dni, "cancelaciones": total})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/webhook/eliminar-cancelacion', methods=["POST"])
 @require_api_key
@@ -520,7 +544,11 @@ def eliminar_cancelacion():
             return jsonify({"status": "error", "message": "Datos incompletos"}), 400
 
         # 1. Eliminar del Google Sheets
-        SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive'
+        ]
+
         cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
         cred_json = base64.b64decode(cred_base64)
         creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)

@@ -123,7 +123,10 @@
   </div>
   <script>
     const form = document.querySelector("form");
+  
     if (form) {
+      let confirmacionMostrada = false;
+  
       form.addEventListener("submit", async function(event) {
         const dni = document.getElementById("dni").value.trim();
         if (!dni) return;
@@ -132,14 +135,22 @@
           const res = await fetch(`/api/cancelaciones/dni?dni=${encodeURIComponent(dni)}`);
           const data = await res.json();
   
-          if (data.cancelaciones >= 3) {
-            alert("⚠️ Este paciente ya ha registrado 3 cancelaciones. Si continúas, se enviará igualmente.");
+          if (data.cancelaciones >= 3 && !confirmacionMostrada) {
+            event.preventDefault();  // Evita envío automático
+            confirmacionMostrada = true;
+  
+            const continuar = confirm("⚠️ Este paciente ya ha cancelado 3 veces. ¿Deseas continuar?");
+            if (continuar) {
+              form.submit();  // Envío manual tras confirmación
+            }
           }
+          // Si no hay cancelaciones previas o ya se confirmó, no hacemos nada: se envía solo
         } catch (err) {
-          console.warn("No se pudo verificar cancelaciones previas", err);
+          console.warn("❌ No se pudo verificar cancelaciones previas", err);
         }
       });
     }
   </script>
+
 </body>
 </html>

@@ -560,6 +560,14 @@ function cargarCancelaciones() {
       console.error("❌ Error al cargar cancelaciones:", err);
     });
 }
+alerta.classList.remove("oculto");
+setTimeout(() => {
+  alerta.classList.add("oculto");
+  setTimeout(() => {
+    alerta.style.display = "none";
+    alerta.classList.remove("oculto");
+  }, 500); // después de la transición
+}, 4000);
 
 
 

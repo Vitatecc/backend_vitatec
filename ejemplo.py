@@ -495,28 +495,39 @@ def ver_cancelaciones():
 
         client = gspread.authorize(creds)
         sheet = client.open("cancelaciones.xlsx").sheet1
-        datos = sheet.get_all_records()
+        filas = sheet.get_all_records()
 
-        conteo = {}
+        conteo_cancelaciones = {}
         total_reagendar = 0
+        lista_final = []
 
-        for fila in datos:
+        for fila in filas:
             dni = fila.get("DNI", "").strip()
-            conteo[dni] = conteo.get(dni, 0) + 1
-            fila["cancelaciones"] = conteo[dni]
+            conteo_cancelaciones[dni] = conteo_cancelaciones.get(dni, 0) + 1
 
-            # Contar si ha marcado ayuda para reagendar
-            reagendar = str(fila.get("Ayuda reagendar", "")).lower()
-            if reagendar in ["sí", "si", "yes"]:
+            reagendar_valor = fila.get("Ayuda reagendar", "").strip().lower()
+            reagendar_si = reagendar_valor in ["sí", "si", "yes"]
+
+            if reagendar_si:
                 total_reagendar += 1
 
-        total = len(datos)
-        pacientes_mas_de_3 = sum(1 for c in conteo.values() if c >= 3)
-        porcentaje_reagendar = round((total_reagendar / total) * 100, 1) if total else 0
+            lista_final.append({
+                "dni": dni,
+                "motivo": fila.get("Motivo", ""),
+                "comentario": fila.get("Comentario", ""),
+                "mejora": fila.get("Mejora", ""),
+                "reagendar": "Sí" if reagendar_si else "No",
+                "timestamp": fila.get("Timestamp", ""),
+                "cancelaciones": conteo_cancelaciones[dni]
+            })
+
+        total = len(lista_final)
+        pacientes_mas_de_3 = sum(1 for v in conteo_cancelaciones.values() if v >= 3)
+        porcentaje_reagendar = round((total_reagendar / total) * 100, 1) if total > 0 else 0
 
         return render_template(
             "cancelaciones.html",
-            cancelaciones=datos,
+            cancelaciones=lista_final,
             total_cancelaciones=total,
             pacientes_mas_de_3=pacientes_mas_de_3,
             porcentaje_reagendar=porcentaje_reagendar,
@@ -525,6 +536,7 @@ def ver_cancelaciones():
 
     except Exception as e:
         return f"❌ Error al cargar cancelaciones: {e}", 500
+
 
         
 @app.route("/api/cancelaciones/dni", methods=["GET"])

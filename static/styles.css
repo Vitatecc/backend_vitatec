@@ -109,7 +109,21 @@ footer {
 #logList div:hover, #messagesList div:hover, #auditList div:hover {
     background-color: #f1f1f1;
 }
-
+#alertaReagendar {
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background-color: #ff3860;
+  color: white;
+  font-size: 1.3em;
+  font-weight: bold;
+  padding: 16px 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
 /* Estilo para el canvas de estadísticas */
 canvas {
     width: 100%;

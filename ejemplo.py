@@ -647,7 +647,7 @@ def obtener_cancelaciones():
         # Conexión a Google Sheets
         scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
         creds = Credentials.from_service_account_info(
-            json.loads(base64.b64decode(os.getenv("GOOGLE_SHEETS_CREDENTIALS")).decode("utf-8")),
+            json.loads(base64.b64decode(os.getenv("GOOGLE_CREDENTIALS_B64")).decode("utf-8")),
             scopes=scope
         )
         client = gspread.authorize(creds)

@@ -708,7 +708,7 @@ def obtener_info_paciente(dni):
             if str(fila.get("CIF", "")).strip().lower() == dni.lower():
                 return jsonify({
                     "nombre": fila.get("Nombre", ""),
-                    "telefono": fila.get("Teléfono", ""),
+                    "telefono": fila.get("Telefono2", ""),
                     "dni": fila.get("CIF", "")
                 })
         return jsonify({"error": "Paciente no encontrado"}), 404

@@ -498,14 +498,34 @@ def ver_cancelaciones():
         datos = sheet.get_all_records()
 
         conteo = {}
+        total_reagendar = 0
+
         for fila in datos:
             dni = fila.get("DNI", "").strip()
             conteo[dni] = conteo.get(dni, 0) + 1
             fila["cancelaciones"] = conteo[dni]
 
-        return render_template("cancelaciones.html", cancelaciones=datos, API_KEY=API_KEY)
+            # Contar si ha marcado ayuda para reagendar
+            reagendar = str(fila.get("Ayuda reagendar", "")).lower()
+            if reagendar in ["sí", "si", "yes"]:
+                total_reagendar += 1
+
+        total = len(datos)
+        pacientes_mas_de_3 = sum(1 for c in conteo.values() if c >= 3)
+        porcentaje_reagendar = round((total_reagendar / total) * 100, 1) if total else 0
+
+        return render_template(
+            "cancelaciones.html",
+            cancelaciones=datos,
+            total_cancelaciones=total,
+            pacientes_mas_de_3=pacientes_mas_de_3,
+            porcentaje_reagendar=porcentaje_reagendar,
+            API_KEY=os.getenv("ADMIN_API_KEY")
+        )
+
     except Exception as e:
         return f"❌ Error al cargar cancelaciones: {e}", 500
+
         
 @app.route("/api/cancelaciones/dni", methods=["GET"])
 def contar_cancelaciones_dni():

@@ -3,9 +3,15 @@ let mostrarFueraDeHorarioManual = false;
 let ultimasSolicitudesJSON = "";
 let dnisRegistrados = [];
 function mostrarModoAutomatico() {
-    document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
-    document.getElementById("avisoHorario").style.display = "none";
-    document.getElementById("alertaFueraHorario").style.display = "none";
+    const tabla = document.querySelector("#tablaSolicitudes thead");
+    if (tabla) tabla.style.display = "table-header-group";
+    
+    const aviso = document.getElementById("avisoHorario");
+    if (aviso) aviso.style.display = "none";
+    
+    const alerta = document.getElementById("alertaFueraHorario");
+    if (alerta) alerta.style.display = "none";
+
     cargarSolicitudes();
     if (!intervaloSolicitudes) {
         intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
@@ -16,9 +22,16 @@ function mostrarModoAutomatico() {
 function mostrarModoFueraHorario() {
     const aviso = document.getElementById("avisoHorario");
     if (aviso) aviso.style.display = "block";
-    document.getElementById("solicitudesBody").innerHTML = "";
-    document.querySelector("#tablaSolicitudes thead").style.display = "none";
-    document.getElementById("alertaFueraHorario").style.display = "none";
+    
+    const cuerpo = document.getElementById("solicitudesBody");
+    if (cuerpo) cuerpo.innerHTML = "";
+    
+    const tabla = document.querySelector("#tablaSolicitudes thead");
+    if (tabla) tabla.style.display = "none";
+    
+    const alerta = document.getElementById("alertaFueraHorario");
+    if (alerta) alerta.style.display = "none";
+    
     clearInterval(intervaloSolicitudes);
     intervaloSolicitudes = null;
 }
@@ -167,9 +180,15 @@ function cargarSolicitudes() {
 
 
 function mostrarSolicitudesFueraHorario() {
-    document.querySelector("#tablaSolicitudes thead").style.display = "table-header-group";
-    document.getElementById("avisoHorario").style.display = "none";
-    document.getElementById("alertaFueraHorario").style.display = "block";
+    const tabla = document.querySelector("#tablaSolicitudes thead");
+    if (tabla) tabla.style.display = "table-header-group";
+    
+    const aviso = document.getElementById("avisoHorario");
+    if (aviso) aviso.style.display = "none";
+    
+    const alerta = document.getElementById("alertaFueraHorario");
+    if (alerta) alerta.style.display = "block";
+
 
     ultimasSolicitudesJSON = "";  // 🔁 Fuerza recarga total
 
@@ -184,7 +203,8 @@ function mostrarSolicitudesFueraHorario() {
 
 
 function ocultarFueraHorario() {
-    document.getElementById("alertaFueraHorario").style.display = "none";
+    const alerta = document.getElementById("alertaFueraHorario");
+    if (alerta) alerta.style.display = "none";
 
     // Simulamos "volver al modo automático" (detecta si estamos en horario)
     const ahora = new Date();
@@ -197,21 +217,24 @@ function ocultarFueraHorario() {
             cargarSolicitudes();
             intervaloSolicitudes = setInterval(cargarSolicitudes, 10000);
         }
-        document.getElementById("avisoHorario").style.display = "none";
+        const aviso = document.getElementById("avisoHorario");
+        if (dentroHorario && aviso) aviso.style.display = "none";
     } else {
         clearInterval(intervaloSolicitudes);
         intervaloSolicitudes = null;
-        document.getElementById("avisoHorario").style.display = "block";
-        document.querySelector("#tablaSolicitudes thead").style.display = "none";
-        document.getElementById("solicitudesBody").innerHTML = "";
+        if (!dentroHorario) {
+            if (aviso) aviso.style.display = "block";
+            const tabla = document.querySelector("#tablaSolicitudes thead");
+            if (tabla) tabla.style.display = "none";
+        
+            const cuerpo = document.getElementById("solicitudesBody");
+            if (cuerpo) cuerpo.innerHTML = "";
+        }
     }
 
     // Eliminar el modo manual
     localStorage.removeItem("modoFueraHorario");
 }
-
-
-
 
 function aprobarPaciente(dni) {
     if (dnisRegistrados.includes(dni.toLowerCase())) {

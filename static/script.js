@@ -1,6 +1,7 @@
 let intervaloSolicitudes = null;
 let mostrarFueraDeHorarioManual = false;
 let ultimasSolicitudesJSON = "";
+let ultimaCancelacionMostrada = null;
 let dnisRegistrados = [];
 function mostrarModoAutomatico() {
     const tabla = document.querySelector("#tablaSolicitudes thead");
@@ -485,3 +486,42 @@ function verAuditoriaDetalles(item) {
 function cerrarAuditoriaModal() {
     document.getElementById("modalAuditoria").style.display = "none";
 }
+function cargarCancelacionesAuto() {
+    fetch("/cancelaciones")
+        .then(response => response.text())
+        .then(html => {
+            const temp = document.createElement("div");
+            temp.innerHTML = html;
+            const filas = temp.querySelectorAll("tbody tr");
+            const nuevaUltima = filas[0]?.querySelector("td")?.textContent?.trim();
+
+            const hayReagendar = Array.from(filas).some(fila =>
+                fila.innerText.includes("Sí") && !fila.innerText.includes("Reagendar mostrado")
+            );
+
+            if (hayReagendar && nuevaUltima !== ultimaCancelacionMostrada) {
+                mostrarAlertaReagendar();
+                ultimaCancelacionMostrada = nuevaUltima;
+            }
+
+            const tablaActual = document.querySelector("table tbody");
+            if (tablaActual) {
+                tablaActual.innerHTML = temp.querySelector("tbody").innerHTML;
+            }
+        })
+        .catch(err => console.error("❌ Error al cargar cancelaciones:", err));
+}
+
+function mostrarAlertaReagendar() {
+    const alerta = document.getElementById("alertaReagendar");
+    if (!alerta) return;
+
+    alerta.style.display = "block";
+    setTimeout(() => {
+        alerta.style.display = "none";
+    }, 5000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    setInterval(cargarCancelacionesAuto, 10000);
+});

@@ -14,7 +14,8 @@ function mostrarModoAutomatico() {
 }
 
 function mostrarModoFueraHorario() {
-    document.getElementById("avisoHorario").style.display = "block";
+    const aviso = document.getElementById("avisoHorario");
+    if (aviso) aviso.style.display = "block";
     document.getElementById("solicitudesBody").innerHTML = "";
     document.querySelector("#tablaSolicitudes thead").style.display = "none";
     document.getElementById("alertaFueraHorario").style.display = "none";

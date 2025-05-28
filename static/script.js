@@ -490,24 +490,19 @@ function mostrarAlertaReagendar() {
     if (!alerta) return;
 
     alerta.style.display = "block";
-    alerta.style.zIndex = "9999";
-    alerta.style.position = "fixed";
-    alerta.style.top = "20px";
-    alerta.style.right = "20px";
-    alerta.style.fontSize = "1.2em";
-    alerta.style.padding = "16px 24px";
-    alerta.style.borderRadius = "12px";
-    alerta.style.backgroundColor = "#ff3860";
-    alerta.style.color = "white";
-    alerta.style.boxShadow = "0 4px 10px rgba(0,0,0,0.25)";
-    alerta.style.fontWeight = "bold";
-
-    alerta.onclick = () => alerta.style.display = "none";
+    alerta.classList.remove("oculto");
 
     setTimeout(() => {
-        alerta.style.display = "none";
-    }, 5000);
+        alerta.classList.add("oculto");
+        setTimeout(() => {
+            alerta.style.display = "none";
+            alerta.classList.remove("oculto");
+        }, 500); // después de la transición de opacidad
+    }, 4000);
+
+    alerta.onclick = () => alerta.style.display = "none";
 }
+
 
 
 let historialReagendados = new Set();
@@ -560,16 +555,6 @@ function cargarCancelaciones() {
       console.error("❌ Error al cargar cancelaciones:", err);
     });
 }
-alerta.classList.remove("oculto");
-setTimeout(() => {
-  alerta.classList.add("oculto");
-  setTimeout(() => {
-    alerta.style.display = "none";
-    alerta.classList.remove("oculto");
-  }, 500); // después de la transición
-}, 4000);
-
-
 
 // Cargar por primera vez y cada 10 segundos
 cargarCancelaciones();

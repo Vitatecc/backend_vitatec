@@ -36,7 +36,7 @@
       <td>{{ c.timestamp }}</td>
       <td>{{ c.cancelaciones }}</td>
       <td>
-        <button class="btn-eliminar" onclick="eliminarCancelacion('{{ c.DNI or c.dni }}', '{{ c.timestamp }}')">Eliminar</button>
+        <button class="btn-eliminar" onclick="eliminarCancelacion('{{ c.dni }}', '{{ c.timestamp }}')">Eliminar</button> </td>
       </td>
     </tr>
     {% endfor %}

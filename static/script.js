@@ -223,6 +223,7 @@ function ocultarFueraHorario() {
         clearInterval(intervaloSolicitudes);
         intervaloSolicitudes = null;
         if (!dentroHorario) {
+            const aviso = document.getElementById("avisoHorario");
             if (aviso) aviso.style.display = "block";
             const tabla = document.querySelector("#tablaSolicitudes thead");
             if (tabla) tabla.style.display = "none";

@@ -482,33 +482,6 @@ def formulario_cancelacion():
 
     return redirect(url_for("formulario_cancelacion", mensaje="ok"))
 
-@app.route('/api/cancelaciones/ultima-reagendar', methods=["GET"])
-@login_required
-def ultima_cancelacion_reagendar():
-    try:
-        SCOPES = [
-            'https://www.googleapis.com/auth/spreadsheets.readonly',
-            'https://www.googleapis.com/auth/drive.readonly'
-        ]
-        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
-        cred_json = base64.b64decode(cred_base64)
-        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
-
-        client = gspread.authorize(creds)
-        sheet = client.open("cancelaciones.xlsx").sheet1
-        filas = sheet.get_all_records()
-
-        # Filtrar por "Sí"
-        con_reagendar = [fila for fila in filas if str(fila.get("Ayuda reagendar", "")).strip().lower() in ["sí", "si", "yes"]]
-        if not con_reagendar:
-            return jsonify({"status": "ok", "hay": False})
-
-        # Tomar la última
-        ultima = sorted(con_reagendar, key=lambda x: x.get("Timestamp", ""), reverse=True)[0]
-        return jsonify({"status": "ok", "hay": True, "dni": ultima.get("DNI"), "timestamp": ultima.get("Timestamp")})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
 
 @app.route("/cancelaciones")
 @login_required
@@ -642,6 +615,72 @@ def eliminar_cancelacion():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/cancelaciones/ultima-reagendar', methods=["GET"])
+@login_required
+def ultima_cancelacion_reagendar():
+    try:
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/drive.readonly'
+        ]
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("cancelaciones.xlsx").sheet1
+        filas = sheet.get_all_records()
+
+        # Filtrar por "Sí"
+        con_reagendar = [fila for fila in filas if str(fila.get("Ayuda reagendar", "")).strip().lower() in ["sí", "si", "yes"]]
+        if not con_reagendar:
+            return jsonify({"status": "ok", "hay": False})
+
+        # Tomar la última
+        ultima = sorted(con_reagendar, key=lambda x: x.get("Timestamp", ""), reverse=True)[0]
+        return jsonify({"status": "ok", "hay": True, "dni": ultima.get("DNI"), "timestamp": ultima.get("Timestamp")})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+@app.route("/api/cancelaciones", methods=["GET"])
+def obtener_cancelaciones():
+    try:
+        # Conexión a Google Sheets
+        scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        creds = Credentials.from_service_account_info(
+            json.loads(base64.b64decode(os.getenv("GOOGLE_SHEETS_CREDENTIALS")).decode("utf-8")),
+            scopes=scope
+        )
+        client = gspread.authorize(creds)
+        sheet = client.open("cancelaciones.xlsx").sheet1
+
+        # Leemos los registros
+        registros = sheet.get_all_records()
+        dnis_cancelaciones = {}
+
+        for r in registros:
+            dni = r.get("DNI", "").strip().upper()
+            if dni:
+                dnis_cancelaciones[dni] = dnis_cancelaciones.get(dni, 0) + 1
+
+        resultado = []
+        for r in registros:
+            dni = r.get("DNI", "").strip().upper()
+            r["cancelaciones"] = dnis_cancelaciones.get(dni, 1)
+            r["reagendar"] = r.get("Ayuda reagendar", "")
+            resultado.append({
+                "dni": r.get("DNI", ""),
+                "motivo": r.get("Motivo", ""),
+                "comentario": r.get("Comentario", ""),
+                "mejora": r.get("Mejora", ""),
+                "reagendar": r.get("Ayuda reagendar", ""),
+                "timestamp": r.get("Timestamp", ""),
+                "cancelaciones": dnis_cancelaciones.get(dni, 1)
+            })
+
+        return jsonify(resultado)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/webhook/aprobar/<dni>', methods=['POST'])

@@ -4,6 +4,12 @@
 
 {% block content %}
 <h2>Cancelaciones registradas</h2>
+
+<!-- 🔔 Alerta estilo spam superior -->
+<div id="alertaLaura" style="display:none; position:fixed; top:10px; left:50%; transform:translateX(-50%); background-color:#fffbcc; color:#333; padding:10px 20px; border:1px solid #f0c36d; border-radius:6px; z-index:9999; box-shadow:0px 0px 10px rgba(0,0,0,0.2);">
+  🚨 <strong>Atención:</strong> Laura ha sido notificada de la solicitud de reagendar.
+</div>
+
 <div class="card-body">
   <p><strong>📋 Total de cancelaciones:</strong> {{ total_cancelaciones }}</p>
   <p><strong>🚨 Pacientes con 3 o más cancelaciones:</strong> {{ pacientes_mas_de_3 }}</p>
@@ -11,11 +17,6 @@
 </div>
 <input type="text" id="buscarDNI" placeholder="Buscar por DNI o Nº Cliente..." style="margin-top: 20px; width: 100%; padding: 10px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc;">
 <p>Total de cancelaciones: {{ cancelaciones|length }}</p>
-
-<!-- Alerta notificación superior -->
-<div id="alertaLaura" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#ffefc0; color:#333; padding:15px 25px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.2); z-index:9999; font-weight:bold;">
-  ⚠️ Laura ha sido notificada del intento de reagendar.
-</div>
 
 <table class="tabla">
   <thead>
@@ -52,9 +53,9 @@
 </table>
 
 <!-- Modal para ver información de reagendar -->
-<div id="modalReagendar" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999;">
-  <div style="background:white; padding:20px; border-radius:10px; width:100%; max-width:450px; text-align:left; box-shadow: 0 0 20px rgba(0,0,0,0.3); position:relative;">
-    <span onclick="cerrarModalReagendar()" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;">&times;</span>
+<div id="modalReagendar" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.5); z-index:9998; display:flex; justify-content:center; align-items:center;">
+  <div style="background:white; padding:25px; border-radius:12px; max-width:450px; text-align:left; box-shadow:0 0 10px rgba(0,0,0,0.3);">
+    <span onclick="cerrarModalReagendar()" style="float:right; cursor:pointer; font-size:22px;">&times;</span>
     <h3>📞 Datos del paciente</h3>
     <p id="infoReagendar">Cargando...</p>
   </div>
@@ -102,11 +103,12 @@
         document.getElementById("infoReagendar").innerHTML = contenido;
         document.getElementById("modalReagendar").style.display = "flex";
 
+        // Mostrar alerta superior
         const alerta = document.getElementById("alertaLaura");
-        if (alerta) {
-          alerta.style.display = "block";
-          setTimeout(() => alerta.style.display = "none", 60000);
-        }
+        alerta.style.display = "block";
+        setTimeout(() => {
+          alerta.style.display = "none";
+        }, 4000);
       })
       .catch(err => {
         console.error("Error al obtener datos:", err);
@@ -117,8 +119,7 @@
   function cerrarModalReagendar() {
     document.getElementById("modalReagendar").style.display = "none";
   }
-</script>
-<script>
+
   document.getElementById("buscarDNI").addEventListener("input", function () {
     const filtro = this.value.toLowerCase();
     const filas = document.querySelectorAll("tbody tr");

@@ -32,13 +32,29 @@ document.addEventListener("DOMContentLoaded", function () {
     //const dentroHorario = false;  // ⚠️ SIMULACIÓN: Fuerza fuera de horario
     const modoManual = localStorage.getItem("modoFueraHorario") === "true";
 
-    cargarLogs();
-    cargarMensajes();
-    cargarAuditoria(); // ✅ Siempre
-    cargarEstadisticas();
-    setTimeout(() => {
-        cargarAuditoria();  // 🕒 Ahora garantizado después de pintado
-    }, 200);
+    if (document.getElementById("logsContainer")) {
+        cargarLogs();
+    }
+
+    if (document.getElementById("messagesContainer")) {
+        cargarMensajes();
+    }
+
+    if (document.getElementById("auditList")) {
+        cargarAuditoria();
+        setTimeout(() => {
+            cargarAuditoria();
+        }, 200);
+    }
+
+    if (document.getElementById("myChart")) {
+        cargarEstadisticas();
+
+        document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
+            radio.addEventListener('change', cargarEstadisticas);
+        });
+    }
+
 
     // 🔄 Modo actual al entrar
     if (dentroHorario || modoManual) {

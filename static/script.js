@@ -2,6 +2,7 @@ let intervaloSolicitudes = null;
 let mostrarFueraDeHorarioManual = false;
 let ultimasSolicitudesJSON = "";
 let ultimaCancelacionMostrada = null;
+let primeraCargaHecha = false;
 let dnisRegistrados = [];
 function mostrarModoAutomatico() {
     const tabla = document.querySelector("#tablaSolicitudes thead");
@@ -487,29 +488,30 @@ function cerrarAuditoriaModal() {
     document.getElementById("modalAuditoria").style.display = "none";
 }
 function cargarCancelacionesAuto() {
-    fetch("/cancelaciones")
-        .then(response => response.text())
-        .then(html => {
-            const temp = document.createElement("div");
-            temp.innerHTML = html;
-            const filas = temp.querySelectorAll("tbody tr");
-            const nuevaUltima = filas[0]?.querySelector("td")?.textContent?.trim();
+  fetch("/cancelaciones")
+    .then(response => response.text())
+    .then(html => {
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      const filas = temp.querySelectorAll("tbody tr");
 
-            const hayReagendar = Array.from(filas).some(fila =>
-                fila.innerText.includes("Sí") && !fila.innerText.includes("Reagendar mostrado")
-            );
+      const nuevaUltima = filas[0]?.querySelector("td")?.textContent?.trim();
+      const hayReagendar = Array.from(filas).some(fila =>
+        fila.innerText.includes("Sí")
+      );
 
-            if (hayReagendar && nuevaUltima !== ultimaCancelacionMostrada) {
-                mostrarAlertaReagendar();
-                ultimaCancelacionMostrada = nuevaUltima;
-            }
+      if (primeraCargaHecha && hayReagendar && nuevaUltima !== ultimaCancelacionMostrada) {
+        mostrarAlertaReagendar();
+      }
 
-            const tablaActual = document.querySelector("table tbody");
-            if (tablaActual) {
-                tablaActual.innerHTML = temp.querySelector("tbody").innerHTML;
-            }
-        })
-        .catch(err => console.error("❌ Error al cargar cancelaciones:", err));
+      ultimaCancelacionMostrada = nuevaUltima;
+      primeraCargaHecha = true;
+
+      const tablaActual = document.querySelector("table tbody");
+      if (tablaActual) {
+        tablaActual.innerHTML = temp.querySelector("tbody").innerHTML;
+      }
+    });
 }
 
 function mostrarAlertaReagendar() {

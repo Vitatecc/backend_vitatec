@@ -645,7 +645,10 @@ def ultima_cancelacion_reagendar():
 def obtener_cancelaciones():
     try:
         # Conexión a Google Sheets
-        scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        scope = [     
+            "https://www.googleapis.com/auth/spreadsheets",     
+            "https://www.googleapis.com/auth/drive" 
+        ]
         creds = Credentials.from_service_account_info(
             json.loads(base64.b64decode(os.getenv("GOOGLE_CREDENTIALS_B64")).decode("utf-8")),
             scopes=scope

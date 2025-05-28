@@ -516,6 +516,12 @@ function cargarCancelaciones() {
   fetch("/api/cancelaciones")
     .then(res => res.json())
     .then(data => {
+      // 🔍 VERIFICACIÓN de que la respuesta es un array
+      if (!Array.isArray(data)) {
+        console.error("❌ Error al cargar cancelaciones:", data);
+        return;
+      }
+
       const tablaBody = document.querySelector("tbody");
       if (!tablaBody) return;
 
@@ -529,7 +535,6 @@ function cargarCancelaciones() {
 
         const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
 
-        // Si es "sí" y no está en historial, mostramos alerta
         if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(c.timestamp)) {
           mostrarAlertaReagendar();
           historialReagendados.add(c.timestamp);
@@ -550,8 +555,12 @@ function cargarCancelaciones() {
         `;
         tablaBody.appendChild(fila);
       });
+    })
+    .catch(err => {
+      console.error("❌ Error al cargar cancelaciones:", err);
     });
 }
+
 
 
 // Cargar por primera vez y cada 10 segundos

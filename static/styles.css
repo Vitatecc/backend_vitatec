@@ -112,8 +112,9 @@ footer {
 #alertaReagendar {
   display: none;
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 9999;
   background-color: #ff3860;
   color: white;
@@ -123,7 +124,17 @@ footer {
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   cursor: pointer;
+  text-align: center;
 }
+#alertaReagendar {
+  transition: opacity 0.5s ease;
+  opacity: 1;
+}
+
+#alertaReagendar.oculto {
+  opacity: 0;
+}
+
 /* Estilo para el canvas de estadísticas */
 canvas {
     width: 100%;

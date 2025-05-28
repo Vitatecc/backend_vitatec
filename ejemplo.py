@@ -330,7 +330,8 @@ def get_solicitudes():
 @login_required
 def panel():
     return render_template('panel.html')
-    
+def limpio(valor):
+    return str(valor or "").strip()   
 def panel_en_modo_manual_fuera_horario():
     try:
         with open(DATA_DIR / "fuera_horario.json", "r", encoding="utf-8") as f:
@@ -502,10 +503,14 @@ def ver_cancelaciones():
         lista_final = []
 
         for fila in filas:
-            dni = fila.get("DNI", "").strip()
-            conteo_cancelaciones[dni] = conteo_cancelaciones.get(dni, 0) + 1
+            dni = limpio(fila.get("DNI"))
+            motivo = limpio(fila.get("Motivo"))
+            comentario = limpio(fila.get("Comentario"))
+            mejora = limpio(fila.get("Mejora"))
+            reagendar_valor = limpio(fila.get("Ayuda reagendar")).lower()
+            timestamp = limpio(fila.get("Timestamp"))
 
-            reagendar_valor = fila.get("Ayuda reagendar", "").strip().lower()
+            conteo_cancelaciones[dni] = conteo_cancelaciones.get(dni, 0) + 1
             reagendar_si = reagendar_valor in ["sí", "si", "yes"]
 
             if reagendar_si:
@@ -513,11 +518,11 @@ def ver_cancelaciones():
 
             lista_final.append({
                 "dni": dni,
-                "motivo": fila.get("Motivo", ""),
-                "comentario": fila.get("Comentario", ""),
-                "mejora": fila.get("Mejora", ""),
+                "motivo": motivo,
+                "comentario": comentario,
+                "mejora": mejora,
                 "reagendar": "Sí" if reagendar_si else "No",
-                "timestamp": fila.get("Timestamp", ""),
+                "timestamp": timestamp,
                 "cancelaciones": conteo_cancelaciones[dni]
             })
 

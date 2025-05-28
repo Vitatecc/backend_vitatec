@@ -482,6 +482,34 @@ def formulario_cancelacion():
 
     return redirect(url_for("formulario_cancelacion", mensaje="ok"))
 
+@app.route('/api/cancelaciones/ultima-reagendar', methods=["GET"])
+@login_required
+def ultima_cancelacion_reagendar():
+    try:
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/drive.readonly'
+        ]
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("cancelaciones.xlsx").sheet1
+        filas = sheet.get_all_records()
+
+        # Filtrar por "Sí"
+        con_reagendar = [fila for fila in filas if str(fila.get("Ayuda reagendar", "")).strip().lower() in ["sí", "si", "yes"]]
+        if not con_reagendar:
+            return jsonify({"status": "ok", "hay": False})
+
+        # Tomar la última
+        ultima = sorted(con_reagendar, key=lambda x: x.get("Timestamp", ""), reverse=True)[0]
+        return jsonify({"status": "ok", "hay": True, "dni": ultima.get("DNI"), "timestamp": ultima.get("Timestamp")})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route("/cancelaciones")
 @login_required
 def ver_cancelaciones():

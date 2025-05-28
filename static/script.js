@@ -536,7 +536,7 @@ function cargarCancelaciones() {
         const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
 
         if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(c.timestamp)) {
-          mostrarAlertaReagendar();
+          mostrarAlertaReagendar()
           historialReagendados.add(c.timestamp);
         }
 

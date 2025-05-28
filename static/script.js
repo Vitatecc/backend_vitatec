@@ -96,6 +96,32 @@ function getApiKey() {
     .then(res => res.json())
     .then(data => data.api_key);
 }
+function verReagendar(dni) {
+    fetch(`/api/paciente/info/${dni}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert("❌ No se pudo obtener los datos del paciente.");
+                return;
+            }
+
+            const contenido = `
+                <strong>Nombre:</strong> ${data.nombre}<br>
+                <strong>Teléfono:</strong> ${data.telefono}<br>
+                <strong>DNI:</strong> ${data.dni}
+            `;
+            document.getElementById("infoReagendar").innerHTML = contenido;
+            document.getElementById("modalReagendar").style.display = "block";
+        })
+        .catch(err => {
+            console.error("Error al obtener datos:", err);
+            alert("❌ Error al contactar con el servidor.");
+        });
+}
+
+function cerrarModalReagendar() {
+    document.getElementById("modalReagendar").style.display = "none";
+}
 
 function cargarSolicitudes() {
     fetch('/api/ver-solicitudes')

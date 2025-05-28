@@ -507,7 +507,7 @@ def ver_cancelaciones():
             motivo = limpio(fila.get("Motivo"))
             comentario = limpio(fila.get("Comentario"))
             mejora = limpio(fila.get("Mejora"))
-            reagendar_valor = limpio(fila.get("Ayuda reagendar")).lower()
+            reagendar_valor = str(fila.get("Ayuda reagendar", "")).strip().lower()
             timestamp = limpio(fila.get("Timestamp"))
 
             conteo_cancelaciones[dni] = conteo_cancelaciones.get(dni, 0) + 1
@@ -688,6 +688,32 @@ def rechazar_solicitud(dni):
 
         return jsonify({"status": "ok", "mensaje": "Solicitud rechazada"})
     return jsonify({"status": "error", "mensaje": "Solicitud no encontrada"}), 404
+@app.route("/api/paciente/info/<dni>", methods=["GET"])
+@login_required
+def obtener_info_paciente(dni):
+    try:
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/drive.readonly'
+        ]
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("pacientes.xlsx").sheet1
+        datos = sheet.get_all_records()
+
+        for fila in datos:
+            if str(fila.get("CIF", "")).strip().lower() == dni.lower():
+                return jsonify({
+                    "nombre": fila.get("Nombre", ""),
+                    "telefono": fila.get("Teléfono", ""),
+                    "dni": fila.get("CIF", "")
+                })
+        return jsonify({"error": "Paciente no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/webhook/solicitudes', methods=['GET'])

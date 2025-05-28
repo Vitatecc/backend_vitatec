@@ -3,6 +3,7 @@ let mostrarFueraDeHorarioManual = false;
 let ultimasSolicitudesJSON = "";
 let ultimaCancelacionMostrada = null;
 let primeraCargaHecha = false;
+let historialReagendados = new Set();
 let dnisRegistrados = [];
 function mostrarModoAutomatico() {
     const tabla = document.querySelector("#tablaSolicitudes thead");
@@ -527,3 +528,63 @@ function mostrarAlertaReagendar() {
 document.addEventListener("DOMContentLoaded", () => {
     setInterval(cargarCancelacionesAuto, 10000);
 });
+let historialReagendados = new Set();
+
+function cargarCancelaciones() {
+  fetch("/api/cancelaciones")
+    .then(res => res.json())
+    .then(data => {
+      const tablaBody = document.querySelector("tbody");
+      if (!tablaBody) return;
+
+      tablaBody.innerHTML = "";
+
+      data.forEach(c => {
+        const fila = document.createElement("tr");
+        if (parseInt(c.cancelaciones || 0) >= 3) {
+          fila.style.backgroundColor = "#f8d7da";
+        }
+
+        const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
+
+        // Si es "sí" y no está en historial, mostramos alerta
+        if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(c.timestamp)) {
+          mostrarAlertaReagendar();
+          historialReagendados.add(c.timestamp);
+        }
+
+        fila.innerHTML = `
+          <td>${c.dni}</td>
+          <td>${c.motivo}</td>
+          <td>${c.comentario}</td>
+          <td>${c.mejora}</td>
+          <td>${c.reagendar}</td>
+          <td>${c.timestamp}</td>
+          <td>${c.cancelaciones}</td>
+          <td>
+            <button class="btn-eliminar" onclick="eliminarCancelacion('${c.dni}', '${c.timestamp}')">Eliminar</button>
+            ${reagendarTexto === "sí" || reagendarTexto === "si" ? `<button onclick="verReagendar('${c.dni}')" class="btn-reagendar">📞 Reagendar</button>` : ""}
+          </td>
+        `;
+        tablaBody.appendChild(fila);
+      });
+    });
+}
+
+// 🔔 Mostrar alerta flotante
+function mostrarAlertaReagendar() {
+  const alerta = document.getElementById("alertaReagendar");
+  if (!alerta) return;
+  alerta.style.display = "block";
+  alerta.style.zIndex = "9999";
+  alerta.onclick = () => alerta.style.display = "none";
+
+  setTimeout(() => {
+    alerta.style.display = "none";
+  }, 5000);
+}
+
+// Cargar por primera vez y cada 10 segundos
+cargarCancelaciones();
+setInterval(cargarCancelaciones, 10000);
+

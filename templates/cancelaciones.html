@@ -4,6 +4,12 @@
 
 {% block content %}
 <h2>Cancelaciones registradas</h2>
+<div class="card-body">
+  <p><strong>📋 Total de cancelaciones:</strong> {{ total_cancelaciones }}</p>
+  <p><strong>🚨 Pacientes con 3 o más cancelaciones:</strong> {{ pacientes_mas_de_3 }}</p>
+  <p><strong>🔁 Porcentaje que pidió reagendar:</strong> {{ porcentaje_reagendar }}%</p>
+</div>
+<input type="text" id="buscarDNI" placeholder="Buscar por DNI o Nº Cliente..." style="margin-top: 20px; width: 100%; padding: 10px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc;">
 <p>Total de cancelaciones: {{ cancelaciones|length }}</p>
 
 <table class="tabla">
@@ -63,4 +69,20 @@
     });
   }
 </script>
+<script>
+  document.getElementById("buscarDNI").addEventListener("input", function () {
+    const filtro = this.value.toLowerCase();
+    const filas = document.querySelectorAll("tbody tr");
+
+    filas.forEach(fila => {
+      const dni = fila.querySelector("td").textContent.toLowerCase();
+      if (dni.includes(filtro)) {
+        fila.style.display = "";
+      } else {
+        fila.style.display = "none";
+      }
+    });
+  });
+</script>
+
 {% endblock %}

@@ -1,92 +1,66 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="max-w-7xl mx-auto mt-16 px-4 sm:px-6 lg:px-8">
-  <h1 class="text-3xl font-bold text-gray-800 mb-4">Cancelaciones registradas</h1>
-  <p class="text-gray-600 mb-6">Total de cancelaciones: {{ cancelaciones | length }}</p>
+{% block title %}Cancelaciones - Vitatec{% endblock %}
 
-  <div class="overflow-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-    <table id="tablaCancelaciones" class="min-w-full divide-y divide-gray-300 text-sm text-left">
-      <thead class="bg-blue-600 text-white">
-        <tr>
-          <th class="px-4 py-3">DNI</th>
-          <th class="px-4 py-3">Motivo</th>
-          <th class="px-4 py-3">Comentario</th>
-          <th class="px-4 py-3">Mejora</th>
-          <th class="px-4 py-3">Reagendar</th>
-          <th class="px-4 py-3">Timestamp</th>
-          <th class="px-4 py-3">Cancelaciones</th>
-          <th class="px-4 py-3">Acciones</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        {% for fila in cancelaciones %}
-        <tr class="{% if fila.cancelaciones >= 3 %}bg-red-100{% endif %}">
-          <td class="px-4 py-2">{{ fila.DNI }}</td>
-          <td class="px-4 py-2">{{ fila.Motivo }}</td>
-          <td class="px-4 py-2">{{ fila.Comentario }}</td>
-          <td class="px-4 py-2">{{ fila.Mejora }}</td>
-          <td class="px-4 py-2">{{ fila['Ayuda reagendar'] }}</td>
-          <td class="px-4 py-2">{{ fila.Timestamp }}</td>
-          <td class="px-4 py-2 font-bold">{{ fila.cancelaciones }}</td>
-          <td class="px-4 py-2">
-            <button onclick="eliminarFila('{{ fila.DNI }}', '{{ fila.Timestamp }}')"
-              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-              Eliminar
-            </button>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+{% block content %}
+<h2>Cancelaciones registradas</h2>
+<p>Total de cancelaciones: {{ cancelaciones|length }}</p>
+
+<table class="tabla">
+  <thead>
+    <tr>
+      <th>DNI</th>
+      <th>Motivo</th>
+      <th>Comentario</th>
+      <th>Mejora</th>
+      <th>Reagendar</th>
+      <th>Timestamp</th>
+      <th>Cancelaciones</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in cancelaciones %}
+    <tr {% if c.cancelaciones|int >= 3 %}style="background-color: #f8d7da;"{% endif %}>
+      <td>{{ c.DNI or c.dni }}</td>
+      <td>{{ c.motivo }}</td>
+      <td>{{ c.comentario }}</td>
+      <td>{{ c.mejora }}</td>
+      <td>{{ c['Ayuda reagendar'] }}</td>
+      <td>{{ c.timestamp }}</td>
+      <td>{{ c.cancelaciones }}</td>
+      <td>
+        <button class="btn-eliminar" onclick="eliminarCancelacion('{{ c.DNI or c.dni }}', '{{ c.timestamp }}')">Eliminar</button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
 <script>
-  function eliminarFila(dni, timestamp) {
-    if (!confirm("¿Estás seguro de que deseas eliminar esta cancelación?")) return;
+  function eliminarCancelacion(dni, timestamp) {
+    if (!confirm("¿Estás seguro de eliminar esta cancelación?")) return;
 
-    fetch('/webhook/eliminar-cancelacion', {
-      method: 'POST',
+    fetch("/webhook/eliminar-cancelacion", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': '{{ API_KEY }}'
+        "Content-Type": "application/json",
+        "x-api-key": "{{ API_KEY }}"
       },
       body: JSON.stringify({ dni, timestamp })
     })
     .then(res => res.json())
     .then(data => {
       if (data.status === "success") {
-        alert("Cancelación eliminada");
         location.reload();
       } else {
-        alert("Error al eliminar: " + data.message);
+        alert("❌ Error al eliminar: " + data.message);
       }
     })
     .catch(err => {
       console.error(err);
-      alert("Error al conectar con el servidor");
+      alert("❌ Error de red al eliminar.");
     });
   }
 </script>
-<script>
-  function actualizarCancelaciones() {
-    fetch('/cancelaciones')
-      .then(res => res.text())
-      .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        const nuevaTabla = doc.querySelector("#tablaCancelaciones");
-        const actual = document.querySelector("#tablaCancelaciones");
-        if (nuevaTabla && actual) {
-          actual.innerHTML = nuevaTabla.innerHTML;
-        }
-      })
-      .catch(err => console.warn("❌ Error al actualizar cancelaciones:", err));
-  }
-
-  // Ejecutar al cargar y cada 15 segundos
-  setInterval(actualizarCancelaciones, 15000);
-</script>
-
 {% endblock %}

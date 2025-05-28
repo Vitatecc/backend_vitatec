@@ -3,7 +3,7 @@ let mostrarFueraDeHorarioManual = false;
 let ultimasSolicitudesJSON = "";
 let ultimaCancelacionMostrada = null;
 let primeraCargaHecha = false;
-let historialReagendados = new Set();
+
 let dnisRegistrados = [];
 function mostrarModoAutomatico() {
     const tabla = document.querySelector("#tablaSolicitudes thead");
@@ -312,8 +312,6 @@ function aprobarPaciente(dni) {
     });
 }
 
-
-
 function rechazarPaciente(dni) {
     getApiKey().then(apiKey => {
         fetch(`/webhook/rechazar/${dni}`, {
@@ -409,8 +407,6 @@ function cargarAuditoria() {
         });
 }
 
-
-
 function cargarEstadisticas() {
     const tipo = document.querySelector('input[name="tipoEstadistica"]:checked').value;
     const url = tipo === "mes" ? '/webhook/stats-google' : '/webhook/stats-google?modo=dia';
@@ -488,32 +484,6 @@ function verAuditoriaDetalles(item) {
 function cerrarAuditoriaModal() {
     document.getElementById("modalAuditoria").style.display = "none";
 }
-function cargarCancelacionesAuto() {
-  fetch("/cancelaciones")
-    .then(response => response.text())
-    .then(html => {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      const filas = temp.querySelectorAll("tbody tr");
-
-      const nuevaUltima = filas[0]?.querySelector("td")?.textContent?.trim();
-      const hayReagendar = Array.from(filas).some(fila =>
-        fila.innerText.includes("Sí")
-      );
-
-      if (primeraCargaHecha && hayReagendar && nuevaUltima !== ultimaCancelacionMostrada) {
-        mostrarAlertaReagendar();
-      }
-
-      ultimaCancelacionMostrada = nuevaUltima;
-      primeraCargaHecha = true;
-
-      const tablaActual = document.querySelector("table tbody");
-      if (tablaActual) {
-        tablaActual.innerHTML = temp.querySelector("tbody").innerHTML;
-      }
-    });
-}
 
 function mostrarAlertaReagendar() {
     const alerta = document.getElementById("alertaReagendar");
@@ -525,9 +495,6 @@ function mostrarAlertaReagendar() {
     }, 5000);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    setInterval(cargarCancelacionesAuto, 10000);
-});
 let historialReagendados = new Set();
 
 function cargarCancelaciones() {
@@ -571,18 +538,6 @@ function cargarCancelaciones() {
     });
 }
 
-// 🔔 Mostrar alerta flotante
-function mostrarAlertaReagendar() {
-  const alerta = document.getElementById("alertaReagendar");
-  if (!alerta) return;
-  alerta.style.display = "block";
-  alerta.style.zIndex = "9999";
-  alerta.onclick = () => alerta.style.display = "none";
-
-  setTimeout(() => {
-    alerta.style.display = "none";
-  }, 5000);
-}
 
 // Cargar por primera vez y cada 10 segundos
 cargarCancelaciones();

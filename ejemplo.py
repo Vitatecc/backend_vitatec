@@ -525,6 +525,7 @@ def formulario_cancelacion():
     return redirect(url_for("formulario_cancelacion", mensaje="ok"))
 
 @app.route("/webhook/eliminar-cancelacion", methods=["POST"])
+@login_required
 def eliminar_cancelacion():
     datos = request.get_json()
     dni = datos.get("dni")
@@ -567,10 +568,11 @@ def eliminar_cancelacion():
         print(f"❌ Error al eliminar en Google Sheets: {e}")
 
     # === 3. REGISTRAR EN AUDITORÍA ===
+    usuario = session.get("usuario", "Desconocido")
     evento = {
         "dni": dni,
         "accion": "Cancelación eliminada",
-        "usuario": "admin",
+        "usuario": "usuario",
         "timestamp": datetime.now().isoformat()
     }
 

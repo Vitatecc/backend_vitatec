@@ -109,32 +109,11 @@ footer {
 #logList div:hover, #messagesList div:hover, #auditList div:hover {
     background-color: #f1f1f1;
 }
-#alertaReagendar {
-  position: fixed;
-  top: 80px;  /* justo debajo del header */
-  right: 20px;
-  z-index: 9999;
-  background-color: #ff3860;
-  color: white;
-  font-size: 1.1em;
-  font-weight: bold;
-  padding: 12px 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  text-align: center;
-  transition: opacity 0.5s ease;
-  opacity: 1;
-}
 
 @keyframes parpadeo {
   0%   { background-color: #f8d7da; }
   50%  { background-color: #d4edda; }
   100% { background-color: #f8d7da; }
-}
-
-#alertaReagendar.oculto {
-  opacity: 0;
 }
 
 /* Estilo para el canvas de estadísticas */

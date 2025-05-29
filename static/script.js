@@ -131,6 +131,7 @@ function cargarSolicitudes() {
             ultimasSolicitudesJSON = nuevoJSON;
 
             const cuerpo = document.getElementById("solicitudesBody");
+            if (!cuerpo) return;
             cuerpo.innerHTML = "";
 
             if (!data.archivos || data.archivos.length === 0) {
@@ -379,6 +380,7 @@ function cargarAuditoria() {
         .then(res => res.json())
         .then(data => {
             const contenedor = document.getElementById("auditList");
+            if (!contenedor) return;
             contenedor.innerHTML = "";
 
             const lista = Array.isArray(data) ? data : (data.audit || []);
@@ -419,7 +421,9 @@ function cargarEstadisticas() {
             const labels = data.labels || Object.keys(data);
             const values = data.values || labels.map(l => data[l]);
 
-            const ctx = document.getElementById("myChart").getContext("2d");
+            const canvas = document.getElementById("myChart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
             if (window.miGrafico) {
                 window.miGrafico.destroy();
             }

@@ -794,13 +794,17 @@ def obtener_info_paciente(dni):
         sheet = client.open("pacientes.xlsx").sheet1
         datos = sheet.get_all_records()
 
+        print(f"🔍 Buscando paciente con DNI: {dni}")
         for fila in datos:
+            print(f"➡️ Revisando fila: {fila.get('CIF', '')}")
             if str(fila.get("CIF", "")).strip().lower() == dni.lower():
+                print("✅ Paciente encontrado")
                 return jsonify({
                     "nombre": fila.get("Nombre", ""),
                     "telefono": fila.get("Telefono2", ""),
                     "dni": fila.get("CIF", "")
                 })
+        print("❌ Paciente no encontrado")
         return jsonify({"error": "Paciente no encontrado"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500

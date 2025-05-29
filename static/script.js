@@ -501,50 +501,57 @@ function cerrarAuditoriaModal() {
 }
 
 function mostrarAlertaReagendarGlobal(dni, timestamp) {
-    const contenedor = document.getElementById("alertasReagendarContainer");
-    if (!contenedor) return;
+  const contenedor = document.getElementById("alertasReagendarContainer");
+  if (!contenedor) return;
 
-    // Evitar duplicadas
-    if (document.getElementById(`alerta-${timestamp}`)) return;
+  // Evitar duplicados
+  if (document.getElementById(`alerta-${timestamp}`)) return;
 
-    const alerta = document.createElement("div");
-    alerta.id = `alerta-${timestamp}`;
-    alerta.className = "alerta-global";
-    alerta.style.cssText = `
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        cursor: pointer;
-        animation: entrada 0.5s ease-in-out;
-    `;
-    alerta.innerHTML = `📢 <strong>Nuevo paciente quiere reagendar su cita</strong><br>DNI: ${dni}`;
+  const alerta = document.createElement("div");
+  alerta.id = `alerta-${timestamp}`;
+  alerta.className = "alerta-global";
+  alerta.style.cssText = `
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    position: relative;
+    animation: entrada 0.5s ease-in-out;
+  `;
 
-    alerta.onclick = () => {
-        fetch(`/api/paciente/info/${dni}`)
-            .then(res => {
-                if (!res.ok) throw new Error("No encontrado");
-                return res.json();
-            })
-            .then(data => {
-                verReagendar(dni);
-                alerta.remove();
-            })
-            .catch(err => {
-                alert("❌ No se pudo obtener información del paciente.");
-                alerta.remove();
-            });
-    };
+  alerta.innerHTML = `
+    📢 <strong>Nuevo paciente quiere reagendar su cita</strong><br>
+    DNI: ${dni}
+    <span style="position:absolute; top:5px; right:10px; font-weight:bold; cursor:pointer;" onclick="this.parentElement.remove()">❌</span>
+  `;
 
-    contenedor.appendChild(alerta);
+  alerta.onclick = () => {
+    fetch(`/api/paciente/info/${dni}`)
+      .then(res => {
+        if (!res.ok) throw new Error("No encontrado");
+        return res.json();
+      })
+      .then(() => {
+        verReagendar(dni);
+        alerta.remove();
+      })
+      .catch(() => {
+        alert("❌ No se pudo obtener información del paciente.");
+        alerta.remove();
+      });
+  };
 
-    setTimeout(() => {
-        alerta.style.opacity = "0";
-        setTimeout(() => alerta.remove(), 1000);
-    }, 60000);
+  contenedor.appendChild(alerta);
+
+  setTimeout(() => {
+    alerta.style.opacity = "0";
+    setTimeout(() => alerta.remove(), 1000);
+  }, 60000);
 }
+
 
 
 function cargarCancelaciones() {

@@ -525,7 +525,21 @@ function mostrarAlertaReagendarGlobal(dni, timestamp) {
   alerta.innerHTML = `
     📢 <strong>Nuevo paciente quiere reagendar su cita</strong><br>
     DNI: ${dni}
-    <span style="position:absolute; top:5px; right:10px; font-weight:bold; cursor:pointer;" onclick="this.parentElement.remove()">❌</span>
+    <span style="position:absolute; top:5px; right:10px; font-weight:bold; cursor:pointer;"
+      onclick="
+        this.parentElement.remove();
+        setTimeout(() => {
+          if (document.querySelectorAll('.alerta-global').length === 0) {
+            const btnCancelaciones = document.getElementById('btnCancelaciones');
+            if (btnCancelaciones) {
+              btnCancelaciones.style.backgroundColor = '';
+              btnCancelaciones.style.color = '';
+              btnCancelaciones.innerHTML = 'Cancelaciones';
+            }
+          }
+        }, 200);
+      "
+    >❌</span>
   `;
 
   alerta.onclick = () => {
@@ -537,6 +551,18 @@ function mostrarAlertaReagendarGlobal(dni, timestamp) {
       .then(() => {
         verReagendar(dni);
         alerta.remove();
+
+        // Restaurar botón si es la última alerta
+        setTimeout(() => {
+          if (document.querySelectorAll('.alerta-global').length === 0) {
+            const btnCancelaciones = document.getElementById("btnCancelaciones");
+            if (btnCancelaciones) {
+              btnCancelaciones.style.backgroundColor = "";
+              btnCancelaciones.style.color = "";
+              btnCancelaciones.innerHTML = "Cancelaciones";
+            }
+          }
+        }, 200);
       })
       .catch(() => {
         alert("❌ No se pudo obtener información del paciente.");
@@ -544,13 +570,38 @@ function mostrarAlertaReagendarGlobal(dni, timestamp) {
       });
   };
 
+  // Destacar botón de Cancelaciones
+  const btnCancelaciones = document.getElementById("btnCancelaciones");
+  if (btnCancelaciones) {
+    btnCancelaciones.style.backgroundColor = "#dc3545";  // rojo Bootstrap
+    btnCancelaciones.style.color = "white";
+    btnCancelaciones.innerHTML = "Cancelaciones 🔔";
+  }
+
   contenedor.appendChild(alerta);
 
+  // Ocultar tras 60 segundos
   setTimeout(() => {
     alerta.style.opacity = "0";
-    setTimeout(() => alerta.remove(), 1000);
+    setTimeout(() => {
+      alerta.remove();
+
+      // Restaurar botón si es la última alerta
+      setTimeout(() => {
+        if (document.querySelectorAll('.alerta-global').length === 0) {
+          const btnCancelaciones = document.getElementById("btnCancelaciones");
+          if (btnCancelaciones) {
+            btnCancelaciones.style.backgroundColor = "";
+            btnCancelaciones.style.color = "";
+            btnCancelaciones.innerHTML = "Cancelaciones";
+          }
+        }
+      }, 200);
+
+    }, 1000);
   }, 60000);
 }
+
 
 
 

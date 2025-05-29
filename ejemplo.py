@@ -448,6 +448,81 @@ def formulario_alta():
             print(f"❌ Excepción al conectar con backend local: {e}")
 
     return redirect(url_for("formulario_alta", mensaje="ok"))
+@app.route("/cancelacion", methods=["GET", "POST"])
+def formulario_cancelacion():
+    ruta_cancelaciones = DATA_DIR / "cancelaciones.json"
+
+    if request.method == "GET":
+        mensaje = request.args.get("mensaje") == "ok"
+        return render_template("cancelacion.html", mensaje=mensaje)
+
+    # Recoger datos del formulario
+    datos = request.form.to_dict()
+    datos["timestamp"] = datetime.now().isoformat()
+    datos["Ayuda reagendar"] = "Sí" if datos.get("ayuda_reagendar") else "No"
+
+    # Guardar en JSON local (backup)
+    try:
+        with open(ruta_cancelaciones, "r", encoding="utf-8") as f:
+            cancelaciones = json.load(f)
+    except:
+        cancelaciones = []
+
+    cancelaciones.append(datos)
+    with open(ruta_cancelaciones, "w", encoding="utf-8") as f:
+        json.dump(cancelaciones, f, indent=2, ensure_ascii=False)
+
+    # Guardar en Google Sheets
+    try:
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+        cred_json = base64.b64decode(cred_base64)
+        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
+
+        client = gspread.authorize(creds)
+        sheet = client.open("cancelaciones.xlsx").sheet1
+        fila = [
+            datos.get("dni", ""),
+            datos.get("motivo", ""),
+            datos.get("comentario", ""),
+            datos.get("mejora", ""),
+            datos.get("Ayuda reagendar", ""),
+            datos["timestamp"]
+        ]
+        sheet.append_row(fila)
+    except Exception as e:
+        print(f"❌ Error al enviar a Google Sheets: {e}")
+
+    # Auditoría
+    evento = {
+        "dni": datos["dni"],
+        "accion": "Cancelación registrada",
+        "usuario": datos["dni"],
+        "timestamp": datos["timestamp"]
+    }
+
+    if datos["Ayuda reagendar"] == "Sí":
+        evento_extra = {
+            "dni": datos["dni"],
+            "accion": "Solicitó ayuda para reagendar",
+            "usuario": datos["dni"],
+            "timestamp": datos["timestamp"]
+        }
+
+    try:
+        with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
+            auditoria = json.load(f)
+    except:
+        auditoria = []
+
+    auditoria.append(evento)
+    if datos["Ayuda reagendar"] == "Sí":
+        auditoria.append(evento_extra)
+
+    with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
+        json.dump(auditoria, f, indent=2, ensure_ascii=False)
+
+    return redirect(url_for("formulario_cancelacion", mensaje="ok"))
 
 @app.route("/webhook/eliminar-cancelacion", methods=["POST"])
 def eliminar_cancelacion():

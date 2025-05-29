@@ -537,7 +537,7 @@ function cargarCancelaciones() {
         console.error("❌ Error al cargar cancelaciones:", data);
         return;
       }
-
+      actualizarResumenCancelaciones(data);
       const tablaBody = document.querySelector("#tablaCancelaciones tbody");
       if (!tablaBody) return;
 
@@ -615,6 +615,29 @@ function cargarCancelaciones() {
     .catch(err => {
       console.error("❌ Error al cargar cancelaciones:", err);
     });
+}
+function actualizarResumenCancelaciones(data) {
+  const total = data.length;
+
+  const pacientesCon3OMas = {};
+  let totalReagendar = 0;
+
+  data.forEach(c => {
+    const dni = c.dni;
+    pacientesCon3OMas[dni] = (pacientesCon3OMas[dni] || 0) + 1;
+
+    const reagendar = (c.reagendar || "").toLowerCase().trim();
+    if (reagendar === "sí" || reagendar === "si") {
+      totalReagendar++;
+    }
+  });
+
+  const con3OMas = Object.values(pacientesCon3OMas).filter(count => count >= 3).length;
+  const porcentajeReagendar = total > 0 ? ((totalReagendar / total) * 100).toFixed(1) : "0";
+
+  document.getElementById("resumenTotalCancelaciones").textContent = total;
+  document.getElementById("resumenCon3OMas").textContent = con3OMas;
+  document.getElementById("resumenPorcentajeReagendar").textContent = `${porcentajeReagendar}%`;
 }
 
 function eliminarCancelacion(dni, timestamp) {

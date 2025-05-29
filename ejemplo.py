@@ -599,52 +599,6 @@ def contar_cancelaciones_dni():
         return jsonify({"dni": dni, "cancelaciones": total})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-@app.route('/webhook/eliminar-cancelacion', methods=["POST"])
-@require_api_key
-def eliminar_cancelacion():
-    try:
-        datos = request.get_json()
-        dni = datos.get("dni")
-        timestamp = datos.get("timestamp")
-
-        if not dni or not timestamp:
-            return jsonify({"status": "error", "message": "Datos incompletos"}), 400
-
-        # 1. Eliminar del Google Sheets
-        SCOPES = [
-            'https://www.googleapis.com/auth/spreadsheets',
-            'https://www.googleapis.com/auth/drive'
-        ]
-
-        cred_base64 = os.getenv("GOOGLE_CREDENTIALS_B64")
-        cred_json = base64.b64decode(cred_base64)
-        creds = Credentials.from_service_account_info(json.loads(cred_json), scopes=SCOPES)
-
-        client = gspread.authorize(creds)
-        sheet = client.open("cancelaciones.xlsx").sheet1
-        registros = sheet.get_all_values()
-
-        # Buscar y eliminar fila exacta
-        for idx, fila in enumerate(registros[1:], start=2):  # Saltamos cabecera
-            if fila[0] == dni and fila[-1] == timestamp:
-                sheet.delete_rows(idx)
-                break
-
-        # 2. Eliminar del JSON local (si existe)
-        ruta_cancelaciones = DATA_DIR / "cancelaciones.json"
-        if ruta_cancelaciones.exists():
-            with open(ruta_cancelaciones, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            data = [d for d in data if not (d.get("DNI") == dni and d.get("timestamp") == timestamp)]
-            with open(ruta_cancelaciones, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-
-        return jsonify({"status": "success", "message": "Cancelación eliminada"})
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
         
 @app.route("/auditoria")
 @login_required

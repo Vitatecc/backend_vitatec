@@ -584,7 +584,7 @@ def eliminar_cancelacion():
     with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
         json.dump(auditoria, f, indent=2, ensure_ascii=False)
 
-    return jsonify({"ok": True})
+    return jsonify({"status": "success", "message": "Cancelación eliminada correctamente"})
 
 
 

@@ -517,7 +517,7 @@ function cargarCancelaciones() {
         return;
       }
 
-      const tablaBody = document.querySelector("tbody");
+      const tablaBody = document.querySelector("#tablaCancelaciones tbody");
       if (!tablaBody) return;
 
       tablaBody.innerHTML = "";
@@ -557,6 +557,10 @@ function cargarCancelaciones() {
 }
 
 // Cargar por primera vez y cada 10 segundos
-cargarCancelaciones();
-setInterval(cargarCancelaciones, 10000);
+// Solo ejecutamos si estamos en la página de cancelaciones
+if (window.location.pathname.includes("cancelaciones")) {
+  cargarCancelaciones();
+  setInterval(cargarCancelaciones, 10000);
+}
+
 

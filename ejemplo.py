@@ -634,10 +634,21 @@ def eliminar_cancelacion():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+        
 @app.route("/auditoria")
 @login_required
-def vista_auditoria():
-    return render_template("auditoria.html")
+def ver_auditoria():
+    try:
+        # Cargar datos auditoría
+        with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
+            registros = json.load(f)
+        
+        # O también puedes leer desde Sheets si ya lo tienes integrado
+        return render_template("auditoria.html", auditoria=registros)
+    except Exception as e:
+        return f"Error al cargar auditoría: {e}", 500
+
+    
 @app.route('/api/cancelaciones/ultima-reagendar', methods=["GET"])
 @login_required
 def ultima_cancelacion_reagendar():

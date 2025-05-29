@@ -656,6 +656,10 @@ function eliminarCancelacion(dni, timestamp) {
     if (data.status === "success") {
       console.log("✅ Cancelación eliminada");
       cargarCancelaciones(); // recarga
+
+      // 🔴 Eliminar alerta si existe
+      const alerta = document.getElementById(`alerta-${timestamp}`);
+      if (alerta) alerta.remove();
     } else {
       alert("❌ Error al eliminar: " + data.message);
     }
@@ -665,6 +669,7 @@ function eliminarCancelacion(dni, timestamp) {
     alert("❌ Error de red al eliminar.");
   });
 }
+
 function revisarReagendados() {
   fetch("/api/cancelaciones")
     .then(res => res.json())

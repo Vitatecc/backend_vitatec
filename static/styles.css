@@ -127,7 +127,11 @@ footer {
   opacity: 1;
 }
 
-
+@keyframes parpadeo {
+  0%   { background-color: #f8d7da; }
+  50%  { background-color: #d4edda; }
+  100% { background-color: #f8d7da; }
+}
 
 #alertaReagendar.oculto {
   opacity: 0;

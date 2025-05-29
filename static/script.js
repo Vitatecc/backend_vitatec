@@ -531,32 +531,54 @@ function cargarCancelaciones() {
 
       tablaBody.innerHTML = "";
 
+      // 🧠 Agrupar cancelaciones por DNI y ordenar por timestamp
+      const cancelacionesPorDni = {};
+      data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
       data.forEach(c => {
+        const dni = c.dni;
+
+        if (!cancelacionesPorDni[dni]) {
+          cancelacionesPorDni[dni] = [];
+        }
+
+        cancelacionesPorDni[dni].push(c);
+      });
+
+      // 🧾 Construcción de filas
+      data.forEach(c => {
+        const dni = c.dni;
+        const timestamp = c.timestamp;
+        const historial = cancelacionesPorDni[dni] || [];
+        const index = historial.findIndex(item => item.timestamp === timestamp);
+        const contador = index + 1;
+
         const fila = document.createElement("tr");
-        if (parseInt(c.cancelaciones || 0) >= 3) {
+
+        if (contador >= 3) {
           fila.style.backgroundColor = "#f8d7da";
         }
 
         const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
-
-        if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(c.timestamp)) {
+        if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(timestamp)) {
           mostrarAlertaReagendar();
-          historialReagendados.add(c.timestamp);
+          historialReagendados.add(timestamp);
         }
 
         fila.innerHTML = `
-          <td>${c.dni}</td>
+          <td>${dni}</td>
           <td>${c.motivo}</td>
           <td>${c.comentario}</td>
           <td>${c.mejora}</td>
           <td>${c.reagendar}</td>
-          <td>${c.timestamp}</td>
-          <td>${c.cancelaciones}</td>
+          <td>${timestamp}</td>
+          <td>${contador}</td>
           <td>
-            <button class="btn-eliminar" onclick="eliminarCancelacion('${c.dni}', '${c.timestamp}')">Eliminar</button>
-            ${reagendarTexto === "sí" || reagendarTexto === "si" ? `<button onclick="verReagendar('${c.dni}')" class="btn-reagendar">📞 Reagendar</button>` : ""}
+            <button class="btn-eliminar" onclick="eliminarCancelacion('${dni}', '${timestamp}')">Eliminar</button>
+            ${reagendarTexto === "sí" || reagendarTexto === "si" ? `<button onclick="verReagendar('${dni}')" class="btn-reagendar">📞 Reagendar</button>` : ""}
           </td>
         `;
+
         tablaBody.appendChild(fila);
       });
     })
@@ -564,6 +586,7 @@ function cargarCancelaciones() {
       console.error("❌ Error al cargar cancelaciones:", err);
     });
 }
+
 
 // Cargar por primera vez y cada 10 segundos
 // Solo ejecutamos si estamos en la página de cancelaciones

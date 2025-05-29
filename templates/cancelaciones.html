@@ -65,18 +65,22 @@
           alert("❌ No se pudo obtener los datos del paciente.");
           return;
         }
+  
         const contenido = `
           <strong>Nombre:</strong> ${data.nombre}<br>
           <strong>Teléfono:</strong> ${data.telefono}<br>
           <strong>DNI:</strong> ${data.dni}
         `;
+  
         document.getElementById("infoReagendar").innerHTML = contenido;
         document.getElementById("modalReagendar").style.display = "flex";
+      })
       .catch(err => {
         console.error("Error al obtener datos:", err);
         alert("❌ Error al contactar con el servidor.");
       });
   }
+
 
   function cerrarModalReagendar() {
     document.getElementById("modalReagendar").style.display = "none";

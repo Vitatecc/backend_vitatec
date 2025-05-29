@@ -57,11 +57,41 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (document.getElementById("auditList")) {
-        cargarAuditoria();
-        setTimeout(() => {
-            cargarAuditoria();
-        }, 200);
+        fetch("/webhook/audit")
+          .then(res => res.json())
+          .then(data => {
+            const contenedor = document.getElementById("auditList");
+            contenedor.innerHTML = "";
+    
+            const lista = Array.isArray(data) ? data : (data.audit || []);
+            const ultimos = lista.slice(-5).reverse();  // Últimas 5 entradas
+    
+            ultimos.forEach(item => {
+              if (!item.accion || !item.usuario || !item.dni) return;
+    
+              const fecha = new Date(item.timestamp).toLocaleString("es-ES");
+    
+              let clase = "registro";
+              if (item.accion === "Rechazada") {
+                  clase += " registro-rechazado";
+              } else if (item.accion === "Aprobada") {
+                  clase += " registro-aprobado";
+              } else if (item.accion === "Solicitud recibida") {
+                  clase += " registro-pendiente";
+              }
+    
+              const div = document.createElement("div");
+              div.className = clase;
+              div.innerHTML = `
+                  <strong>${item.dni}</strong> – 
+                  <span>${item.accion}</span> (${item.usuario})<br>
+                  <small>${fecha}</small>
+              `;
+              contenedor.appendChild(div);
+            });
+          });
     }
+
 
     if (document.getElementById("myChart")) {
         cargarEstadisticas();

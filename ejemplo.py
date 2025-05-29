@@ -267,12 +267,32 @@ def obtener_estadisticas_google_sheets(modo="mes"):
     except Exception as e:
         return {"error": str(e)}
         
-@app.route('/webhook/stats-google')
+@app.route("/webhook/stats-google")
 @login_required
 def stats_google():
-    modo = request.args.get("modo", "mes")
-    resultado = obtener_estadisticas_google_sheets(modo)
-    return jsonify(resultado)
+    try:
+        modo = request.args.get("modo", "mes")
+        hoja = sh.worksheet("pacientes")
+        datos = hoja.get_all_records()
+
+        if not datos:
+            return jsonify({})
+
+        df = pd.DataFrame(datos)
+        df['Fecha'] = pd.to_datetime(df['Timestamp'], errors='coerce')
+
+        if modo == "dia":
+            resumen = df['Fecha'].dt.date.value_counts().sort_index()
+        else:
+            resumen = df['Fecha'].dt.to_period('M').value_counts().sort_index()
+
+        return jsonify({
+            "labels": [str(k) for k in resumen.index],
+            "values": resumen.tolist()
+        })
+    except Exception as e:
+        return jsonify({"labels": [], "values": [], "error": str(e)})
+
 
 @app.route("/logout")
 def logout():
@@ -312,9 +332,13 @@ def get_messages():
 @login_required
 def get_audit():
     try:
-        with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return jsonify(data)
+        ruta = os.path.join("data", "audit.json")
+        if not os.path.exists(ruta):
+            return jsonify({"audit": []})
+
+        with open(ruta, "r", encoding="utf-8") as f:
+            datos = json.load(f)
+        return jsonify({"audit": datos})
     except Exception as e:
         return jsonify({"audit": [], "error": str(e)})
     

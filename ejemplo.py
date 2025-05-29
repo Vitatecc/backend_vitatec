@@ -282,11 +282,16 @@ def logout():
 @login_required
 def get_logs():
     try:
-        with open(RUTA_LOGS, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return jsonify(data)
+        ruta_logs = os.path.join("data", "logs.json")
+        if not os.path.exists(ruta_logs):
+            return jsonify({"logs": []})  # devolver vacío sin error
+
+        with open(ruta_logs, "r", encoding="utf-8") as f:
+            datos = json.load(f)
+        return jsonify({"logs": datos})
     except Exception as e:
         return jsonify({"logs": [], "error": str(e)})
+
 
 @app.route("/webhook/messages")
 @login_required

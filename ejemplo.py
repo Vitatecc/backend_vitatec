@@ -272,26 +272,11 @@ def obtener_estadisticas_google_sheets(modo="mes"):
 def stats_google():
     try:
         modo = request.args.get("modo", "mes")
-        hoja = sh.worksheet("pacientes")
-        datos = hoja.get_all_records()
-
-        if not datos:
-            return jsonify({})
-
-        df = pd.DataFrame(datos)
-        df['Fecha'] = pd.to_datetime(df['Timestamp'], errors='coerce')
-
-        if modo == "dia":
-            resumen = df['Fecha'].dt.date.value_counts().sort_index()
-        else:
-            resumen = df['Fecha'].dt.to_period('M').value_counts().sort_index()
-
-        return jsonify({
-            "labels": [str(k) for k in resumen.index],
-            "values": resumen.tolist()
-        })
+        datos = obtener_estadisticas_google_sheets(modo=modo)
+        return jsonify(datos)
     except Exception as e:
         return jsonify({"labels": [], "values": [], "error": str(e)})
+
 
 
 @app.route("/logout")

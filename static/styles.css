@@ -41,6 +41,12 @@ nav ul li {
     display: inline-block;
     margin: 0 20px;
 }
+.auditoria-amarillo {
+  background-color: #fff8dc !important;
+}
+.auditoria-rojo {
+  background-color: #f8d7da !important;
+}
 
 nav ul li a {
     color: white;

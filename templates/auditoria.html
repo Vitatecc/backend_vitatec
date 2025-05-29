@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Auditoría - Vitatec{% endblock %}
+
+{% block content %}
+<h2>Auditoría del sistema</h2>
+
+<div style="margin-bottom: 20px;">
+  <label for="filtroAuditoria">Filtrar por tipo:</label>
+  <select id="filtroAuditoria">
+    <option value="todos">Todos</option>
+    <option value="Solicitud recibida">Solicitudes</option>
+    <option value="Reagendar desde cancelación">Cancelaciones</option>
+    <option value="Aprobada">Aprobadas</option>
+    <option value="Rechazada">Rechazadas</option>
+  </select>
+</div>
+
+<table class="tabla">
+  <thead>
+    <tr>
+      <th>DNI</th>
+      <th>Acción</th>
+      <th>Usuario</th>
+      <th>Fecha</th>
+    </tr>
+  </thead>
+  <tbody id="tablaAuditoria">
+    <!-- Se rellena con JS -->
+  </tbody>
+</table>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    fetch("/webhook/audit")
+      .then(res => res.json())
+      .then(data => {
+        const eventos = data.audit || [];
+        const tbody = document.getElementById("tablaAuditoria");
+
+        function renderizar(filtro) {
+          tbody.innerHTML = "";
+          eventos
+            .filter(ev => filtro === "todos" || ev.accion === filtro)
+            .forEach(ev => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${ev.dni}</td>
+                <td>${ev.accion}</td>
+                <td>${ev.usuario}</td>
+                <td>${new Date(ev.timestamp).toLocaleString("es-ES")}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+        }
+
+        renderizar("todos");
+
+        document.getElementById("filtroAuditoria").addEventListener("change", e => {
+          renderizar(e.target.value);
+        });
+      });
+  });
+</script>
+{% endblock %}
+

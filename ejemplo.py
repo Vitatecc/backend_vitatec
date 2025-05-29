@@ -292,11 +292,16 @@ def get_logs():
 @login_required
 def get_messages():
     try:
-        with open(RUTA_MESSAGES, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return jsonify(data)
+        ruta = os.path.join("data", "messages.json")
+        if not os.path.exists(ruta):
+            return jsonify({"messages": []})  # Devolver vacío sin error
+
+        with open(ruta, "r", encoding="utf-8") as f:
+            mensajes = json.load(f)
+        return jsonify({"messages": mensajes})
     except Exception as e:
-        return jsonify({"messages": [], "error": str(e)})
+        return jsonify({"error": str(e), "messages": []})
+
 
 @app.route("/webhook/audit")
 @login_required

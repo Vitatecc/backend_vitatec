@@ -351,10 +351,12 @@ function cargarLogs(mostrarTodos = false) {
             console.error("Error al cargar logs:", error);
         });
 }
-
 function cargarMensajes(mostrarTodos = false) {
     fetch("/webhook/messages")
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        })
         .then(data => {
             const lista = data.messages || [];
             const contenedor = document.getElementById("messagesContainer");
@@ -370,8 +372,13 @@ function cargarMensajes(mostrarTodos = false) {
         })
         .catch(error => {
             console.error("Error al cargar mensajes:", error);
+            if (error.message.includes("HTTP 401") || error.message.includes("HTTP 302")) {
+                alert("⚠️ Tu sesión ha expirado. Vuelve a iniciar sesión.");
+                window.location.href = "/login";
+            }
         });
 }
+
 
 function cargarAuditoria() {
     fetch("/webhook/audit")

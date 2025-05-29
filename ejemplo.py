@@ -449,33 +449,27 @@ def formulario_alta():
 
     return redirect(url_for("formulario_alta", mensaje="ok"))
 
-@app.route("/cancelacion", methods=["GET", "POST"])
-def formulario_cancelacion():
+@app.route("/webhook/eliminar-cancelacion", methods=["POST"])
+def eliminar_cancelacion():
+    datos = request.get_json()
+    dni = datos.get("dni")
+    timestamp = datos.get("timestamp")
+
+    if not dni or not timestamp:
+        return jsonify({"error": "Faltan datos"}), 400
+
+    # === 1. ELIMINAR DEL JSON LOCAL ===
     ruta_cancelaciones = DATA_DIR / "cancelaciones.json"
-
-    if request.method == "GET":
-        mensaje = request.args.get("mensaje") == "ok"
-        return render_template("cancelacion.html", mensaje=mensaje)
-
-    # Recoger datos del formulario
-    datos = request.form.to_dict()
-    datos["timestamp"] = datetime.now().isoformat()
-
-    # Asegurar valores explícitos para campos nuevos
-    datos["Ayuda reagendar"] = "Sí" if datos.get("ayuda_reagendar") else "No"
-
-    # Guardar en JSON local (backup)
     try:
         with open(ruta_cancelaciones, "r", encoding="utf-8") as f:
             cancelaciones = json.load(f)
-    except:
-        cancelaciones = []
+        nuevas = [c for c in cancelaciones if not (c.get("dni") == dni and c.get("timestamp") == timestamp)]
+        with open(ruta_cancelaciones, "w", encoding="utf-8") as f:
+            json.dump(nuevas, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"❌ Error al eliminar del JSON local: {e}")
 
-    cancelaciones.append(datos)
-    with open(ruta_cancelaciones, "w", encoding="utf-8") as f:
-        json.dump(cancelaciones, f, indent=2, ensure_ascii=False)
-
-    # Guardar en Google Sheets
+    # === 2. ELIMINAR DE GOOGLE SHEETS ===
     try:
         SCOPES = [
             'https://www.googleapis.com/auth/spreadsheets',
@@ -487,19 +481,36 @@ def formulario_cancelacion():
 
         client = gspread.authorize(creds)
         sheet = client.open("cancelaciones.xlsx").sheet1
-        fila = [
-            datos.get("dni", ""),
-            datos.get("motivo", ""),
-            datos.get("comentario", ""),
-            datos.get("mejora", ""),
-            datos.get("Ayuda reagendar", ""),
-            datos["timestamp"]
-        ]
-        sheet.append_row(fila)
-    except Exception as e:
-        print(f"❌ Error al enviar a Google Sheets: {e}")
 
-    return redirect(url_for("formulario_cancelacion", mensaje="ok"))
+        celda_dni = sheet.find(dni)
+        if celda_dni:
+            fila = celda_dni.row
+            valores = sheet.row_values(fila)
+            if timestamp in valores:
+                sheet.delete_rows(fila)
+    except Exception as e:
+        print(f"❌ Error al eliminar en Google Sheets: {e}")
+
+    # === 3. REGISTRAR EN AUDITORÍA ===
+    evento = {
+        "dni": dni,
+        "accion": "Cancelación eliminada",
+        "usuario": "admin",
+        "timestamp": datetime.now().isoformat()
+    }
+
+    try:
+        with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
+            auditoria = json.load(f)
+    except:
+        auditoria = []
+
+    auditoria.append(evento)
+    with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
+        json.dump(auditoria, f, indent=2, ensure_ascii=False)
+
+    return jsonify({"ok": True})
+
 
 
 @app.route("/cancelaciones")

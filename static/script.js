@@ -84,6 +84,11 @@ document.addEventListener("DOMContentLoaded", function () {
         radio.addEventListener('change', cargarEstadisticas);
     });
 });
+// 🕐 Mostrar alerta de reagendar en todas las páginas (excepto login y formulario)
+if (!window.location.pathname.includes("/login") && !window.location.pathname.includes("/formulario")) {
+  revisarReagendados(); // Primera vez
+  setInterval(revisarReagendados, 10000); // Cada 10 segundos
+}
 
 
 function getApiKey() {
@@ -652,6 +657,29 @@ function eliminarCancelacion(dni, timestamp) {
     console.error("❌ Error al eliminar:", err);
     alert("❌ Error de red al eliminar.");
   });
+}
+function revisarReagendados() {
+  fetch("/api/cancelaciones")
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data)) return;
+
+      data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      for (const c of data) {
+        const dni = c.dni;
+        const timestamp = c.timestamp;
+        const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
+
+        if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(timestamp)) {
+          mostrarAlertaReagendarGlobal(dni, timestamp);
+          historialReagendados.add(timestamp);
+        }
+      }
+    })
+    .catch(err => {
+      console.error("❌ Error al revisar reagendados:", err);
+    });
 }
 
 

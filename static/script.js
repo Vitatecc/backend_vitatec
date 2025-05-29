@@ -500,76 +500,6 @@ function cerrarAuditoriaModal() {
     document.getElementById("modalAuditoria").style.display = "none";
 }
 
-function mostrarAlertaReagendarGlobal(dni, timestamp) {
-  const contenedor = document.getElementById("alertasReagendarContainer");
-  if (!contenedor) return;
-
-  // Evitar duplicados
-  if (document.getElementById(`alerta-${timestamp}`)) return;
-
-  const alerta = document.createElement("div");
-  alerta.id = `alerta-${timestamp}`;
-  alerta.className = "alerta-global";
-  alerta.style.cssText = `
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    cursor: pointer;
-    position: relative;
-    animation: entrada 0.5s ease-in-out;
-  `;
-
-  alerta.innerHTML = `
-    📢 <strong>Nuevo paciente quiere reagendar su cita</strong><br>
-    DNI: ${dni}
-    <span style="position:absolute; top:5px; right:10px; font-weight:bold; cursor:pointer;"
-      onclick="
-        this.parentElement.remove();
-        setTimeout(() => {
-          if (document.querySelectorAll('.alerta-global').length === 0) {
-            const btnCancelaciones = document.getElementById('btnCancelaciones');
-            if (btnCancelaciones) {
-              btnCancelaciones.style.backgroundColor = '';
-              btnCancelaciones.style.color = '';
-              btnCancelaciones.innerHTML = 'Cancelaciones';
-            }
-          }
-        }, 200);
-      "
-    >❌</span>
-  `;
-
-  alerta.onclick = () => {
-    fetch(`/api/paciente/info/${dni}`)
-      .then(res => {
-        if (!res.ok) throw new Error("No encontrado");
-        return res.json();
-      })
-      .then(() => {
-        verReagendar(dni);
-        alerta.remove();
-
-        // Restaurar botón si es la última alerta
-        setTimeout(() => {
-          if (document.querySelectorAll('.alerta-global').length === 0) {
-            const btnCancelaciones = document.getElementById("btnCancelaciones");
-            if (btnCancelaciones) {
-              btnCancelaciones.style.backgroundColor = "";
-              btnCancelaciones.style.color = "";
-              btnCancelaciones.innerHTML = "Cancelaciones";
-            }
-          }
-        }, 200);
-      })
-      .catch(() => {
-        alert("❌ No se pudo obtener información del paciente.");
-        alerta.remove();
-      });
-  };
-
   // Destacar botón de Cancelaciones
   const btnCancelaciones = document.getElementById("btnCancelaciones");
   if (btnCancelaciones) {
@@ -649,9 +579,12 @@ function cargarCancelaciones() {
         }
 
         const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
-        if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(timestamp)) {
-          mostrarAlertaReagendarGlobal(dni, timestamp);
-          historialReagendados.add(timestamp);
+        if (reagendarTexto === "sí" || reagendarTexto === "si") {
+          if (contador >= 3) {
+              fila.style.animation = "parpadeo 1s infinite";
+          } else {
+              fila.style.backgroundColor = "#d4edda";  // verde claro
+          }
         }
 
         fila.innerHTML = `
@@ -720,31 +653,6 @@ function eliminarCancelacion(dni, timestamp) {
     alert("❌ Error de red al eliminar.");
   });
 }
-
-function revisarReagendados() {
-  fetch("/api/cancelaciones")
-    .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data)) return;
-
-      data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-      for (const c of data) {
-        const dni = c.dni;
-        const timestamp = c.timestamp;
-        const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
-
-        if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(timestamp)) {
-          mostrarAlertaReagendarGlobal(dni, timestamp);
-          historialReagendados.add(timestamp);
-        }
-      }
-    })
-    .catch(err => {
-      console.error("❌ Error al revisar reagendados:", err);
-    });
-}
-
 
 // Cargar por primera vez y cada 10 segundos
 // Solo ejecutamos si estamos en la página de cancelaciones

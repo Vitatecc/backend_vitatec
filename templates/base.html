@@ -66,8 +66,10 @@
   <main>
     {% block content %}{% endblock %}
   </main>
-
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+  <div id="alertasReagendarContainer"
+       style="position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;">
+  </div>
 </body>
 </html>

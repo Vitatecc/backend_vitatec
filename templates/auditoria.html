@@ -45,11 +45,18 @@
               const tr = document.createElement("tr");
               if (ev.accion === "Aprobada") {
                 tr.classList.add("registro-aprobado");
-              } else if (ev.accion === "Rechazada") {
+              } else if (
+                ev.accion === "Rechazada" ||
+                ev.accion === "Cancelación eliminada"
+              ) {
                 tr.classList.add("registro-rechazado");
-              } else if (ev.accion === "Solicitud recibida") {
+              } else if (
+                ev.accion === "Solicitud recibida" ||
+                ev.accion === "Solicitó ayuda para reagendar"
+              ) {
                 tr.classList.add("registro-pendiente");
               }
+
               tr.innerHTML = `
                 <td>${ev.dni}</td>
                 <td>${ev.accion}</td>

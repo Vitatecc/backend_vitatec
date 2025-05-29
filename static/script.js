@@ -517,17 +517,27 @@ function mostrarAlertaReagendarGlobal(dni, timestamp) {
     alerta.innerHTML = `📢 <strong>Nuevo paciente quiere reagendar su cita</strong><br>DNI: ${dni}`;
 
     alerta.onclick = () => {
-        alerta.remove();
-        verReagendar(dni);
+        fetch(`/api/paciente/info/${dni}`)
+            .then(res => {
+                if (!res.ok) throw new Error("No encontrado");
+                return res.json();
+            })
+            .then(data => {
+                verReagendar(dni);
+                alerta.remove();
+            })
+            .catch(err => {
+                alert("❌ No se pudo obtener información del paciente.");
+                alerta.remove();
+            });
     };
 
     contenedor.appendChild(alerta);
 
-    // Autoocultar tras 1 minuto
     setTimeout(() => {
         alerta.style.opacity = "0";
         setTimeout(() => alerta.remove(), 1000);
-    }, 60000); // 1 minuto
+    }, 60000);
 }
 
 let historialReagendados = new Set();

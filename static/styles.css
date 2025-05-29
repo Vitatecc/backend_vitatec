@@ -271,6 +271,29 @@ input[type="text"]:focus, input[type="date"]:focus, select:focus {
     border-radius: 4px;
     transition: all 0.3s ease;
 }
+/* Modal centrado vertical y horizontal */
+.modal-reagendar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-reagendar-contenido {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 450px;
+  width: 90%;
+  text-align: left;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
 
 .registro:hover {
     transform: scale(1.01);

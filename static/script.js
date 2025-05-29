@@ -1,6 +1,7 @@
 let intervaloSolicitudes = null;
 let ultimasSolicitudesJSON = "";
 let ultimaCancelacionMostrada = null;
+let historialReagendados = new Set();
 
 let dnisRegistrados = [];
 function mostrarModoAutomatico() {
@@ -545,7 +546,6 @@ function mostrarAlertaReagendarGlobal(dni, timestamp) {
     }, 60000);
 }
 
-let historialReagendados = new Set();
 
 function cargarCancelaciones() {
   fetch("/api/cancelaciones")

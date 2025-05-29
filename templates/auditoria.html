@@ -43,6 +43,13 @@
             .filter(ev => filtro === "todos" || ev.accion === filtro)
             .forEach(ev => {
               const tr = document.createElement("tr");
+              if (ev.accion === "Aprobada") {
+                tr.classList.add("registro-aprobado");
+              } else if (ev.accion === "Rechazada") {
+                tr.classList.add("registro-rechazado");
+              } else if (ev.accion === "Solicitud recibida") {
+                tr.classList.add("registro-pendiente");
+              }
               tr.innerHTML = `
                 <td>${ev.dni}</td>
                 <td>${ev.accion}</td>

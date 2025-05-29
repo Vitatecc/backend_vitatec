@@ -62,66 +62,6 @@
 </div>
 
 <script>
-  function eliminarCancelacion(dni, timestamp) {
-    if (!confirm("¿Estás seguro de eliminar esta cancelación?")) return;
-  
-    fetch("/webhook/eliminar-cancelacion", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "{{ API_KEY }}"
-      },
-      body: JSON.stringify({ dni, timestamp })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "success") {
-        const filas = document.querySelectorAll("tbody tr");
-        let filaEliminada = false;
-  
-        for (const fila of filas) {
-          const celdas = fila.querySelectorAll("td");
-          if (celdas.length >= 6) {
-            const dniFila = celdas[0].textContent.trim();
-            const timestampFila = celdas[5].textContent.trim();
-            if (dniFila === dni && timestampFila === timestamp) {
-              fila.remove();
-              filaEliminada = true;
-              break;
-            }
-          }
-        }
-  
-        if (filaEliminada) {
-          // 🔄 Actualizar total de cancelaciones
-          const filasRestantes = document.querySelectorAll("tbody tr");
-          const total = filasRestantes.length;
-          document.querySelector("p:nth-of-type(2)").textContent = `Total de cancelaciones: ${total}`;
-  
-          // 🔁 Calcular porcentaje que pidió reagendar
-          const conReagendar = Array.from(filasRestantes).filter(f =>
-            f.children[4].textContent.trim().toLowerCase() === "sí"
-          ).length;
-          const porcentaje = total > 0 ? ((conReagendar / total) * 100).toFixed(1) : 0;
-          document.querySelector("p:nth-of-type(4)").innerHTML = `<strong>🔁 Porcentaje que pidió reagendar:</strong> ${porcentaje}%`;
-  
-          // 🚨 Recontar pacientes con 3 o más cancelaciones
-          const masDe3 = Array.from(filasRestantes).filter(f =>
-            parseInt(f.children[6].textContent.trim()) >= 3
-          ).length;
-          document.querySelector("p:nth-of-type(3)").innerHTML = `<strong>🚨 Pacientes con 3 o más cancelaciones:</strong> ${masDe3}`;
-        }
-  
-      } else {
-        alert("❌ Error al eliminar: " + data.message);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("❌ Error de red al eliminar.");
-    });
-  }
-
   function verReagendar(dni) {
     fetch(`/api/paciente/info/${dni}`)
       .then(res => res.json())

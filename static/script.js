@@ -628,7 +628,9 @@ function eliminarCancelacion(dni, timestamp) {
   .then(data => {
     if (data.status === "success") {
       console.log("✅ Cancelación eliminada");
-      cargarCancelaciones(); // recarga
+      if (document.getElementById("tablaCancelaciones")) {
+          cargarCancelaciones();
+      }
 
       // 🔴 Eliminar alerta si existe
       const alerta = document.getElementById(`alerta-${timestamp}`);

@@ -1,8 +1,6 @@
 let intervaloSolicitudes = null;
-let mostrarFueraDeHorarioManual = false;
 let ultimasSolicitudesJSON = "";
 let ultimaCancelacionMostrada = null;
-let primeraCargaHecha = false;
 
 let dnisRegistrados = [];
 function mostrarModoAutomatico() {
@@ -66,10 +64,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (document.getElementById("myChart")) {
         cargarEstadisticas();
-
-        document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
-            radio.addEventListener('change', cargarEstadisticas);
-        });
     }
 
 
@@ -573,11 +567,26 @@ function cargarCancelaciones() {
           <td>${c.reagendar}</td>
           <td>${timestamp}</td>
           <td>${contador}</td>
-          <td>
-            <button class="btn-eliminar" onclick="eliminarCancelacion('${dni}', '${timestamp}')">Eliminar</button>
-            ${reagendarTexto === "sí" || reagendarTexto === "si" ? `<button onclick="verReagendar('${dni}')" class="btn-reagendar">📞 Reagendar</button>` : ""}
-          </td>
         `;
+        
+        const celdaAcciones = document.createElement("td");
+        
+        const btnEliminar = document.createElement("button");
+        btnEliminar.textContent = "Eliminar";
+        btnEliminar.className = "btn-eliminar";
+        btnEliminar.addEventListener("click", () => eliminarCancelacion(dni, timestamp));
+        celdaAcciones.appendChild(btnEliminar);
+        
+        if (reagendarTexto === "sí" || reagendarTexto === "si") {
+          const btnReagendar = document.createElement("button");
+          btnReagendar.className = "btn-reagendar";
+          btnReagendar.innerHTML = "📞 Reagendar";
+          btnReagendar.addEventListener("click", () => verReagendar(dni));
+          celdaAcciones.appendChild(btnReagendar);
+        }
+        
+        fila.appendChild(celdaAcciones);
+
 
         tablaBody.appendChild(fila);
       });
@@ -585,6 +594,31 @@ function cargarCancelaciones() {
     .catch(err => {
       console.error("❌ Error al cargar cancelaciones:", err);
     });
+}
+function eliminarCancelacion(dni, timestamp) {
+  if (!confirm("¿Estás seguro de eliminar esta cancelación?")) return;
+
+  fetch("/webhook/eliminar-cancelacion", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": "clave_vitatec_super_segura" // o tu variable segura
+    },
+    body: JSON.stringify({ dni, timestamp })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      console.log("✅ Cancelación eliminada");
+      cargarCancelaciones(); // recarga
+    } else {
+      alert("❌ Error al eliminar: " + data.message);
+    }
+  })
+  .catch(err => {
+    console.error("❌ Error al eliminar:", err);
+    alert("❌ Error de red al eliminar.");
+  });
 }
 
 

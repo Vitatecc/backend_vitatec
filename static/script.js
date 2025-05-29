@@ -114,6 +114,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll('input[name="tipoEstadistica"]').forEach(radio => {
         radio.addEventListener('change', cargarEstadisticas);
     });
+    if (window.location.pathname.includes("cancelaciones")) {
+        cargarCancelaciones();
+        setInterval(cargarCancelaciones, 10000);
+    }
 });
 
 function getApiKey() {
@@ -644,14 +648,5 @@ function eliminarCancelacion(dni, timestamp) {
     alert("❌ Error de red al eliminar.");
   });
 }
-
-// Cargar por primera vez y cada 10 segundos
-// Solo ejecutamos si estamos en la página de cancelaciones
-document.addEventListener("DOMContentLoaded", () => {
-  if (window.location.pathname.includes("cancelaciones")) {
-    cargarCancelaciones();
-    setInterval(cargarCancelaciones, 10000);
-  }
-});
 
 

@@ -647,9 +647,11 @@ function eliminarCancelacion(dni, timestamp) {
 
 // Cargar por primera vez y cada 10 segundos
 // Solo ejecutamos si estamos en la página de cancelaciones
-if (window.location.pathname.includes("cancelaciones")) {
-  cargarCancelaciones();
-  setInterval(cargarCancelaciones, 10000);
-}
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.location.pathname.includes("cancelaciones")) {
+    cargarCancelaciones();
+    setInterval(cargarCancelaciones, 10000);
+  }
+});
 
 

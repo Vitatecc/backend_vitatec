@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 // 🕐 Mostrar alerta de reagendar en todas las páginas (excepto login y formulario)
-if (!window.location.pathname.includes("/login") && !window.location.pathname.includes("/formulario")) {
+if (!window.location.pathname.includes("/login") && !window.location.pathname.includes("/formulario") && !window.location.pathname.includes("/cancelacion")) {
   revisarReagendados(); // Primera vez
   setInterval(revisarReagendados, 10000); // Cada 10 segundos
 }

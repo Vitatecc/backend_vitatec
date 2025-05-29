@@ -580,6 +580,7 @@ def ver_cancelaciones():
 
         
 @app.route("/api/cancelaciones/dni", methods=["GET"])
+@login_required
 def contar_cancelaciones_dni():
     dni = request.args.get("dni", "").strip()
     if not dni:

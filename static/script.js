@@ -109,7 +109,7 @@ function verReagendar(dni) {
                 <strong>DNI:</strong> ${data.dni}
             `;
             document.getElementById("infoReagendar").innerHTML = contenido;
-            document.getElementById("modalReagendar").style.display = "block";
+            document.getElementById("modalReagendar").style.display = "flex";
         })
         .catch(err => {
             console.error("Error al obtener datos:", err);

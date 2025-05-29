@@ -500,41 +500,6 @@ function cerrarAuditoriaModal() {
     document.getElementById("modalAuditoria").style.display = "none";
 }
 
-  // Destacar botón de Cancelaciones
-  const btnCancelaciones = document.getElementById("btnCancelaciones");
-  if (btnCancelaciones) {
-    btnCancelaciones.style.backgroundColor = "#dc3545";  // rojo Bootstrap
-    btnCancelaciones.style.color = "white";
-    btnCancelaciones.innerHTML = "Cancelaciones 🔔";
-  }
-
-  contenedor.appendChild(alerta);
-
-  // Ocultar tras 60 segundos
-  setTimeout(() => {
-    alerta.style.opacity = "0";
-    setTimeout(() => {
-      alerta.remove();
-
-      // Restaurar botón si es la última alerta
-      setTimeout(() => {
-        if (document.querySelectorAll('.alerta-global').length === 0) {
-          const btnCancelaciones = document.getElementById("btnCancelaciones");
-          if (btnCancelaciones) {
-            btnCancelaciones.style.backgroundColor = "";
-            btnCancelaciones.style.color = "";
-            btnCancelaciones.innerHTML = "Cancelaciones";
-          }
-        }
-      }, 200);
-
-    }, 1000);
-  }, 60000);
-}
-
-
-
-
 function cargarCancelaciones() {
   fetch("/api/cancelaciones")
     .then(res => res.json())

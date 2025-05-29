@@ -495,7 +495,7 @@ function cerrarAuditoriaModal() {
 }
 
 function mostrarAlertaReagendarGlobal(dni, timestamp) {
-    const contenedor = document.getElementById("alertasGlobales");
+    const contenedor = document.getElementById("alertasReagendarContainer");
     if (!contenedor) return;
 
     // Evitar duplicadas

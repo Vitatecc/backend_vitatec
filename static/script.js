@@ -100,6 +100,7 @@ function getApiKey() {
     .then(data => data.api_key);
 }
 function verReagendar(dni) {
+    console.log("🔍 verReagendar invocado con DNI:", dni); 
     fetch(`/api/paciente/info/${dni}`)
         .then(res => res.json())
         .then(data => {
@@ -487,7 +488,7 @@ function cerrarAuditoriaModal() {
 
 function mostrarAlertaReagendar() {
     const alerta = document.getElementById("alertaReagendar");
-    if (!alerta) return;
+    if (!alerta || alerta.style.display === "block") return; // No duplicar
 
     alerta.style.display = "block";
     alerta.classList.remove("oculto");
@@ -497,11 +498,12 @@ function mostrarAlertaReagendar() {
         setTimeout(() => {
             alerta.style.display = "none";
             alerta.classList.remove("oculto");
-        }, 500); // después de la transición de opacidad
+        }, 500);
     }, 4000);
 
     alerta.onclick = () => alerta.style.display = "none";
 }
+
 
 
 

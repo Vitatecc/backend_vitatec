@@ -494,44 +494,41 @@ function cerrarAuditoriaModal() {
     document.getElementById("modalAuditoria").style.display = "none";
 }
 
-function mostrarAlertaReagendar(dni) {
-    const container = document.getElementById("alertasReagendarContainer");
-    if (!container) return;
+function mostrarAlertaReagendarGlobal(dni, timestamp) {
+    const contenedor = document.getElementById("alertasGlobales");
+    if (!contenedor) return;
 
-    // Evitar duplicados exactos
-    if (document.getElementById(`alerta-${dni}`)) return;
+    // Evitar duplicadas
+    if (document.getElementById(`alerta-${timestamp}`)) return;
 
     const alerta = document.createElement("div");
-    alerta.className = "alerta-reagendar";
-    alerta.id = `alerta-${dni}`;
-    alerta.innerHTML = `📞 Paciente con DNI <strong>${dni}</strong> quiere reagendar.`;
-    alerta.style.backgroundColor = "#ff3860";
-    alerta.style.color = "white";
-    alerta.style.padding = "15px";
-    alerta.style.borderRadius = "10px";
-    alerta.style.cursor = "pointer";
-    alerta.style.fontWeight = "bold";
-    alerta.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-    alerta.style.transition = "opacity 0.3s ease";
+    alerta.id = `alerta-${timestamp}`;
+    alerta.className = "alerta-global";
+    alerta.style.cssText = `
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        cursor: pointer;
+        animation: entrada 0.5s ease-in-out;
+    `;
+    alerta.innerHTML = `📢 <strong>Nuevo paciente quiere reagendar su cita</strong><br>DNI: ${dni}`;
 
     alerta.onclick = () => {
+        alerta.remove();
         verReagendar(dni);
-        alerta.remove(); // elimina la alerta después de verla
     };
 
-    container.appendChild(alerta);
+    contenedor.appendChild(alerta);
 
-    // Ocultar automáticamente tras 1 minuto si no se ha hecho clic
+    // Autoocultar tras 1 minuto
     setTimeout(() => {
-        if (document.getElementById(`alerta-${dni}`)) {
-            alerta.remove();
-        }
-    }, 60000);
+        alerta.style.opacity = "0";
+        setTimeout(() => alerta.remove(), 1000);
+    }, 60000); // 1 minuto
 }
-
-
-
-
 
 let historialReagendados = new Set();
 
@@ -580,7 +577,7 @@ function cargarCancelaciones() {
 
         const reagendarTexto = (c.reagendar || "").trim().toLowerCase();
         if ((reagendarTexto === "sí" || reagendarTexto === "si") && !historialReagendados.has(timestamp)) {
-          mostrarAlertaReagendar(dni);
+          mostrarAlertaReagendarGlobal(dni, timestamp);
           historialReagendados.add(timestamp);
         }
 
@@ -620,6 +617,7 @@ function cargarCancelaciones() {
       console.error("❌ Error al cargar cancelaciones:", err);
     });
 }
+
 function eliminarCancelacion(dni, timestamp) {
   if (!confirm("¿Estás seguro de eliminar esta cancelación?")) return;
 

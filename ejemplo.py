@@ -640,6 +640,9 @@ def eliminar_cancelacion():
 def ver_auditoria():
     try:
         # Cargar datos auditoría
+        if not RUTA_AUDIT.exists():
+            with open(RUTA_AUDIT, "w", encoding="utf-8") as f:
+            json.dump([], f)
         with open(RUTA_AUDIT, "r", encoding="utf-8") as f:
             registros = json.load(f)
         

@@ -634,7 +634,10 @@ def eliminar_cancelacion():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
+@app.route("/auditoria")
+@login_required
+def vista_auditoria():
+    return render_template("auditoria.html")
 @app.route('/api/cancelaciones/ultima-reagendar', methods=["GET"])
 @login_required
 def ultima_cancelacion_reagendar():
